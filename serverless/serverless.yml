@@ -1,0 +1,30 @@
+frameworkVersion: ">=2.55.0"
+
+service: paas-data-ingestion-lambdas
+
+provider:
+  name: aws
+  runtime: python3.8
+  stage: dev
+  region: us-west-2
+
+functions:
+  collect:
+    handler: handler.collect
+    memorySize: 512
+    timeout: 5
+    events:
+      - http:
+          path: /collect
+          method: post
+          cors: true
+  pump:
+    handler: pumper.pump
+    environment: 
+      COLLECT: https://9faen07iy7.execute-api.us-west-2.amazonaws.com/dev
+    memorySize: 512
+    timeout: 60
+    events:
+      - schedule: rate(10 minutes)
+plugins:
+  - serverless-python-requirements
