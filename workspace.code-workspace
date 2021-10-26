@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "Root",
+			"path": "."
+		},
+		{
+			"name": "Infrastructure",
+			"path": "infrastructure"
+		}
+	],
+	"settings": {}
+}

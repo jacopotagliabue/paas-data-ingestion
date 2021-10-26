@@ -2,8 +2,9 @@ import pulumi
 import pulumi_aws as aws
 import pulumi_snowflake as snowflake
 
-from sf_roles import MySnowflakeRoles
-from sf_snowpipe import MySnowpipe
+from my_snowflake_roles import MySnowflakeRoles
+from my_snowflake_snowpipe import MySnowpipe
+from my_lambda import MyLambda
 
 
 PROJECT_NAME = pulumi.get_project()
@@ -80,6 +81,36 @@ sf_stream_logs_snowpipe = MySnowpipe(
             nullable=False,
         ),
         snowflake.TableColumnArgs(
+            name='SERVICE_ID',
+            type='VARCHAR(254)',
+            nullable=False,
+        ),
+        snowflake.TableColumnArgs(
+            name='REQUEST_ID',
+            type='VARCHAR(36)',
+            nullable=True,
+        ),
+        snowflake.TableColumnArgs(
+            name='REQUEST_TIMESTAMP',
+            type='TIMESTAMP_TZ(9)',
+            nullable=True,
+        ),
+        snowflake.TableColumnArgs(
+            name='RESPONSE_ID',
+            type='VARCHAR(36)',
+            nullable=True,
+        ),
+        snowflake.TableColumnArgs(
+            name='RESPONSE_TIMESTAMP',
+            type='TIMESTAMP_TZ(9)',
+            nullable=True,
+        ),
+        snowflake.TableColumnArgs(
+            name='CLIENT_ID',
+            type='VARCHAR(36)',
+            nullable=True,
+        ),
+        snowflake.TableColumnArgs(
             name='DATA',
             type='VARIANT',
             nullable=False,
@@ -101,11 +132,18 @@ sf_stream_logs_snowpipe = MySnowpipe(
         ),
     ],
     table_cluster_bies=[
-        'TO_DATE(LOG_TIMESTAMP)',  # TODO: use the log timestamp
+        'SERVICE_ID',
+        'TO_DATE(REQUEST_TIMESTAMP)',
     ],
     copy_statement=f"""
         COPY INTO {SF_DB_NAME}.{SF_STREAM_SCHEMA_NAME}.{SF_STREAM_LOGS_TABLE_NAME} (
             ID,
+            SERVICE_ID,
+            REQUEST_ID,
+            REQUEST_TIMESTAMP,
+            RESPONSE_ID,
+            RESPONSE_TIMESTAMP,
+            CLIENT_ID,
             DATA,
             LOG_FILENAME,
             LOG_FILE_ROW_NUMBER,
@@ -114,6 +152,12 @@ sf_stream_logs_snowpipe = MySnowpipe(
         FROM (
             SELECT
                 LOWER(UUID_STRING('da69e958-fee3-428b-9dc3-e7586429fcfc', CONCAT(metadata$filename, ':', metadata$file_row_number))),
+                NULLIF(SUBSTR(LOWER(TRIM($1:service:id::STRING)), 1, 254), ''),
+                NULLIF(SUBSTR(LOWER(TRIM($1:request:id::STRING)), 1, 36), ''),
+                TO_TIMESTAMP_NTZ($1:request:timestamp::INT, 3),
+                NULLIF(SUBSTR(LOWER(TRIM($1:response:id::STRING)), 1, 36), ''),
+                TO_TIMESTAMP_NTZ($1:response:timestamp::INT, 3),
+                NULLIF(SUBSTR(LOWER(TRIM($1:context:client_id::STRING)), 1, 36), ''),
                 $1,
                 metadata$filename,
                 metadata$file_row_number,
@@ -130,11 +174,67 @@ sf_stream_logs_snowpipe = MySnowpipe(
     ),
 )
 
+# API Gateway
+api = aws.apigatewayv2.Api(
+    'Api',
+    name=PREFIX,
+    protocol_type='HTTP',
+)
+
+api_stage = aws.apigatewayv2.Stage(
+    'Prod',
+    name='prod',
+    api_id=api.id,
+    auto_deploy=True,
+    opts=pulumi.ResourceOptions(parent=api),
+)
+
+# API: Collect
+lambda_api_collect = MyLambda(
+    'ApiLambdaCollect',
+    prefix=PREFIX,
+    lambda_name='collect',
+    clouwatch_logs_retention_in_days=3,
+    apigatewayv2_api=api,
+    apigatewayv2_route_key='POST /collect',
+    code=pulumi.FileArchive('../lambda/collect'),
+    handler='main.handler',
+    environment=aws.lambda_.FunctionEnvironmentArgs(
+        variables={
+            'fh_stream_name': sf_stream_logs_snowpipe.firehose.name,
+        },
+    ),
+)
+
+aws.iam.RolePolicy(
+    f'ApiLambdaCollect_Firehose',
+    name='FirehoseWriteAccess',
+    role=lambda_api_collect.iam_role.id,
+    policy=aws.iam.get_policy_document(
+        statements=[
+            aws.iam.GetPolicyDocumentStatementArgs(
+                actions=[
+                    'firehose:PutRecord',
+                    'firehose:PutRecordBatch',
+                ],
+                resources=[
+                    sf_stream_logs_snowpipe.firehose.arn,
+                ],
+                effect='Allow',
+            ),
+        ],
+    ).json,
+    opts=pulumi.ResourceOptions(parent=lambda_api_collect),
+)
+
 
 # Final
 pulumi.export('firehose_arn', sf_stream_logs_snowpipe.firehose.arn)
 pulumi.export('firehose_name', sf_stream_logs_snowpipe.firehose.name)
+
 pulumi.export('snowflake_database_name', sf_database.name)
 pulumi.export('snowflake_stream_schema_name', sf_stream_schema.name)
 pulumi.export('snowflake_stream_table_name',
               sf_stream_logs_snowpipe.table.name)
+
+pulumi.export('api_endpoint', api_stage.invoke_url)

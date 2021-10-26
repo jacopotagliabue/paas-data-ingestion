@@ -2,36 +2,30 @@ import pulumi
 import pulumi_snowflake as snowflake
 
 
-# Warehouse
-#  - https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#virtual-warehouse-privileges
+# Warehouse: https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#virtual-warehouse-privileges
 RO_WAREHOUSE_PRIVILEGES = ['USAGE']
 RW_WAREHOUSE_PRIVILEGES = ['USAGE', 'MONITOR']
 
-# Database
-#  - https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#database-privileges
+# Database: https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#database-privileges
 RO_DATABASE_PRIVILEGES = ['USAGE']
 RW_DATABASE_PRIVILEGES = ['USAGE', 'MONITOR', 'CREATE SCHEMA']
 
-# Schema
-#  - https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#schema-privileges
+# Schema: https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#schema-privileges
 RO_SCHEMA_PRIVILEGES = ['USAGE']
 RW_SCHEMA_PRIVILEGES = ['MODIFY', 'MONITOR', 'USAGE', 'CREATE TABLE', 'CREATE EXTERNAL TABLE', 'CREATE VIEW', 'CREATE MATERIALIZED VIEW', 'CREATE MASKING POLICY',
                         'CREATE STAGE', 'CREATE FILE FORMAT', 'CREATE SEQUENCE', 'CREATE FUNCTION', 'CREATE PIPE', 'CREATE STREAM', 'CREATE TASK', 'CREATE PROCEDURE']
 # 'CREATE ROW ACCESS POLICY' ?
 
-# Table
-#  - https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#table-privileges
+# Table: https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#table-privileges
 RO_TABLE_PRIVILEGES = ['SELECT']
 RW_TABLE_PRIVILEGES = ['SELECT', 'INSERT',
                        'UPDATE', 'TRUNCATE', 'DELETE', 'REFERENCES']
 
-# View
-#  - https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#view-privileges
+# View: https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#view-privileges
 RO_VIEW_PRIVILEGES = ['SELECT']
 RW_VIEW_PRIVILEGES = ['SELECT']
 
-# Function
-#  - https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#user-defined-function-udf-and-external-function-privileges
+# Function: https://docs.snowflake.com/en/user-guide/security-access-control-privileges.html#user-defined-function-udf-and-external-function-privileges
 RO_FUNCTION_PRIVILEGES = ['USAGE']
 RW_FUNCTION_PRIVILEGES = ['USAGE']
 
