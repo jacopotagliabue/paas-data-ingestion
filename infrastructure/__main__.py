@@ -182,8 +182,8 @@ api = aws.apigatewayv2.Api(
 )
 
 api_stage = aws.apigatewayv2.Stage(
-    'Prod',
-    name='prod',
+    'Rest',
+    name='rest',
     api_id=api.id,
     auto_deploy=True,
     opts=pulumi.ResourceOptions(parent=api),
