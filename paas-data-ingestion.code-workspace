@@ -6,7 +6,11 @@
 		},
 		{
 			"name": "Infrastructure",
-			"path": "infrastructure"
+			"path": "./infrastructure"
+		},
+		{
+			"name": "Lambda: collect",
+			"path": "./lambda/collect"
 		}
 	],
 	"settings": {}

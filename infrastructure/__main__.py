@@ -30,17 +30,17 @@ s3_logs_bucket = aws.s3.Bucket(
 )
 
 # Snowflake
-sf_warehouse = snowflake.Warehouse(
-    f'Warehouse',
-    name=f'{SF_DB_NAME}_WH',
-    warehouse_size='x-small',
-    auto_suspend=5,
-    auto_resume=True,
-)
-
 sf_database = snowflake.Database(
     'Database',
     name=SF_DB_NAME,
+)
+
+sf_warehouse = snowflake.Warehouse(
+    'Warehouse',
+    name=pulumi.Output.concat(sf_database.name, '_WH'),
+    warehouse_size='x-small',
+    auto_suspend=5,
+    auto_resume=True,
 )
 
 sf_roles = MySnowflakeRoles(
@@ -66,7 +66,7 @@ sf_stream_logs_snowpipe = MySnowpipe(
     'Logs',
     prefix=PREFIX,
     s3_bucket=s3_logs_bucket,
-    s3_logs_prefix='stream_data',
+    s3_data_prefix='stream_data',
     s3_error_prefix='stream_errors',
     database=sf_database,
     schema=sf_stream_schema,
@@ -75,11 +75,6 @@ sf_stream_logs_snowpipe = MySnowpipe(
     pipe_name=SF_LOGS_PIPE_NAME,
     table_name=SF_STREAM_LOGS_TABLE_NAME,
     table_columns=[
-        snowflake.TableColumnArgs(
-            name='ID',
-            type='VARCHAR(36)',
-            nullable=False,
-        ),
         snowflake.TableColumnArgs(
             name='SERVICE_ID',
             type='VARCHAR(254)',
@@ -116,6 +111,11 @@ sf_stream_logs_snowpipe = MySnowpipe(
             nullable=False,
         ),
         snowflake.TableColumnArgs(
+            name='LOG_ID',
+            type='VARCHAR(36)',
+            nullable=False,
+        ),
+        snowflake.TableColumnArgs(
             name='LOG_FILENAME',
             type='VARCHAR(16777216)',
             nullable=False,
@@ -132,12 +132,11 @@ sf_stream_logs_snowpipe = MySnowpipe(
         ),
     ],
     table_cluster_bies=[
-        'SERVICE_ID',
         'TO_DATE(REQUEST_TIMESTAMP)',
+        'SERVICE_ID',
     ],
     copy_statement=f"""
         COPY INTO {SF_DB_NAME}.{SF_STREAM_SCHEMA_NAME}.{SF_STREAM_LOGS_TABLE_NAME} (
-            ID,
             SERVICE_ID,
             REQUEST_ID,
             REQUEST_TIMESTAMP,
@@ -145,13 +144,13 @@ sf_stream_logs_snowpipe = MySnowpipe(
             RESPONSE_TIMESTAMP,
             CLIENT_ID,
             DATA,
+            LOG_ID,
             LOG_FILENAME,
             LOG_FILE_ROW_NUMBER,
             LOG_TIMESTAMP
         )
         FROM (
             SELECT
-                LOWER(UUID_STRING('da69e958-fee3-428b-9dc3-e7586429fcfc', CONCAT(metadata$filename, ':', metadata$file_row_number))),
                 NULLIF(SUBSTR(LOWER(TRIM($1:service:id::STRING)), 1, 254), ''),
                 NULLIF(SUBSTR(LOWER(TRIM($1:request:id::STRING)), 1, 36), ''),
                 TO_TIMESTAMP_NTZ($1:request:timestamp::INT, 3),
@@ -159,6 +158,7 @@ sf_stream_logs_snowpipe = MySnowpipe(
                 TO_TIMESTAMP_NTZ($1:response:timestamp::INT, 3),
                 NULLIF(SUBSTR(LOWER(TRIM($1:context:client_id::STRING)), 1, 36), ''),
                 $1,
+                LOWER(UUID_STRING('da69e958-fee3-428b-9dc3-e7586429fcfc', CONCAT(metadata$filename, ':', metadata$file_row_number))),
                 metadata$filename,
                 metadata$file_row_number,
                 CURRENT_TIMESTAMP()
@@ -191,7 +191,7 @@ api_stage = aws.apigatewayv2.Stage(
 
 # API: Collect
 lambda_api_collect = MyLambda(
-    'ApiLambdaCollect',
+    'ApiCollect',
     prefix=PREFIX,
     lambda_name='collect',
     clouwatch_logs_retention_in_days=3,
@@ -204,6 +204,7 @@ lambda_api_collect = MyLambda(
             'fh_stream_name': sf_stream_logs_snowpipe.firehose.name,
         },
     ),
+    opts=pulumi.ResourceOptions(parent=api_stage),
 )
 
 aws.iam.RolePolicy(

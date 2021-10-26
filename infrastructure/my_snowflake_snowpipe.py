@@ -31,7 +31,7 @@ class MySnowpipe(pulumi.ComponentResource):
                  name,
                  prefix: str,
                  s3_bucket: aws.s3.Bucket,
-                 s3_logs_prefix: str,
+                 s3_data_prefix: str,
                  s3_error_prefix: str,
                  database: snowflake.Database,
                  schema: snowflake.Schema,
@@ -45,15 +45,13 @@ class MySnowpipe(pulumi.ComponentResource):
                  opts=None):
         super().__init__('pkg:index:MySnowpipe', name, None, opts)
 
-        #
-        # AWS
-        identity = aws.get_caller_identity()
+        aws_region_id = aws.get_region().id
+        aws_account_id = aws.get_caller_identity().account_id
 
-        #
         # Firehose
         fh_iam_role = aws.iam.Role(
             'FirehoseAssumeRole',
-            name=f'{prefix}-fh',
+            name=f'{prefix}-{aws_region_id}-fh',
             assume_role_policy=aws.iam.get_policy_document(
                 statements=[
                     aws.iam.GetPolicyDocumentStatementArgs(
@@ -89,7 +87,7 @@ class MySnowpipe(pulumi.ComponentResource):
                         resources=[
                             s3_bucket.arn,
                             pulumi.Output.concat(
-                                s3_bucket.arn, '/', s3_logs_prefix, '/*'),
+                                s3_bucket.arn, '/', s3_data_prefix, '/*'),
                             pulumi.Output.concat(
                                 s3_bucket.arn, '/', s3_error_prefix, '/*'),
                         ],
@@ -105,7 +103,7 @@ class MySnowpipe(pulumi.ComponentResource):
             extended_s3_configuration=aws.kinesis.FirehoseDeliveryStreamExtendedS3ConfigurationArgs(
                 bucket_arn=s3_bucket.arn,
                 role_arn=fh_iam_role.arn,
-                prefix=f'{s3_logs_prefix}/',
+                prefix=f'{s3_data_prefix}/',
                 error_output_prefix=f'{s3_error_prefix}/',
                 buffer_interval=60,
                 compression_format='GZIP',
@@ -124,7 +122,6 @@ class MySnowpipe(pulumi.ComponentResource):
             opts=pulumi.ResourceOptions(parent=self),
         )
 
-        #
         # Snowpipe
         s3_stage_url = pulumi.Output.concat(
             's3://', s3_bucket.id, '/', self.firehose.extended_s3_configuration.prefix,
@@ -138,9 +135,7 @@ class MySnowpipe(pulumi.ComponentResource):
             storage_allowed_locations=[
                 s3_stage_url,
             ],
-            # ??
-            # storage_aws_role_arn=aws.iam.get_role_output(name='snowpipe-pulumi').arn,
-            storage_aws_role_arn=f'arn:aws:iam::{identity.account_id}:role/{prefix}-snowpipe'.lower(
+            storage_aws_role_arn=f'arn:aws:iam::{aws_account_id}:role/{prefix}-{aws_region_id}-snowpipe'.lower(
             ).replace('_', '-'),
             enabled=True,
             opts=pulumi.ResourceOptions(parent=self),
@@ -165,7 +160,7 @@ class MySnowpipe(pulumi.ComponentResource):
         sf_iam_role = aws.iam.Role(
             'SnowpipeAssumeRole',
             # We're using a static name due to the circual dep between the Storage Integration and the IAM role
-            name=f'{prefix}-snowpipe',
+            name=f'{prefix}-{aws_region_id}-snowpipe',
             assume_role_policy=aws.iam.get_policy_document(
                 statements=[
                     aws.iam.GetPolicyDocumentStatementArgs(
@@ -213,7 +208,7 @@ class MySnowpipe(pulumi.ComponentResource):
                         ],
                         resources=[
                             pulumi.Output.concat(
-                                s3_bucket.arn, '/', s3_logs_prefix, '/*'),
+                                s3_bucket.arn, '/', s3_data_prefix, '/*'),
                         ],
                     ),
                     aws.iam.GetPolicyDocumentStatementArgs(
@@ -228,7 +223,7 @@ class MySnowpipe(pulumi.ComponentResource):
                                 test='StringLike',
                                 variable='s3:prefix',
                                 values=[
-                                    f'{s3_logs_prefix}/*',
+                                    f'{s3_data_prefix}/*',
                                 ],
                             ),
                         ],
@@ -270,7 +265,7 @@ class MySnowpipe(pulumi.ComponentResource):
                     events=[
                         's3:ObjectCreated:*',
                     ],
-                    filter_prefix=f'{s3_logs_prefix}/',
+                    filter_prefix=f'{s3_data_prefix}/',
                 ),
             ],
             opts=pulumi.ResourceOptions(parent=self),

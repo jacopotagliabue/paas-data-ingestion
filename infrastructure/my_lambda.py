@@ -21,9 +21,11 @@ class MyLambda(pulumi.ComponentResource):
                  opts=None):
         super().__init__('pkg:index:MyLambda', resource_name, None, opts)
 
+        aws_region_id = aws.get_region().id
+
         self.iam_role = aws.iam.Role(
             resource_name,
-            name=f'{prefix}-lambda',
+            name=f'{prefix}-{aws_region_id}-lambda',
             assume_role_policy=aws.iam.get_policy_document(
                 statements=[
                     aws.iam.GetPolicyDocumentStatementArgs(
