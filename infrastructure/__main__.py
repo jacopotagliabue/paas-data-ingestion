@@ -87,7 +87,7 @@ sf_stream_logs_snowpipe = MySnowpipe(
         ),
         snowflake.TableColumnArgs(
             name='REQUEST_TIMESTAMP',
-            type='TIMESTAMP_TZ(9)',
+            type='TIMESTAMP_NTZ(9)',
             nullable=True,
         ),
         snowflake.TableColumnArgs(
@@ -97,7 +97,7 @@ sf_stream_logs_snowpipe = MySnowpipe(
         ),
         snowflake.TableColumnArgs(
             name='RESPONSE_TIMESTAMP',
-            type='TIMESTAMP_TZ(9)',
+            type='TIMESTAMP_NTZ(9)',
             nullable=True,
         ),
         snowflake.TableColumnArgs(
@@ -127,7 +127,7 @@ sf_stream_logs_snowpipe = MySnowpipe(
         ),
         snowflake.TableColumnArgs(
             name='LOG_TIMESTAMP',
-            type='TIMESTAMP_TZ(9)',
+            type='TIMESTAMP_NTZ(9)',
             nullable=False,
         ),
     ],
@@ -161,7 +161,7 @@ sf_stream_logs_snowpipe = MySnowpipe(
                 LOWER(UUID_STRING('da69e958-fee3-428b-9dc3-e7586429fcfc', CONCAT(metadata$filename, ':', metadata$file_row_number))),
                 metadata$filename,
                 metadata$file_row_number,
-                CURRENT_TIMESTAMP()
+                TO_TIMESTAMP_NTZ(CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP()))
             FROM @{SF_DB_NAME}.{SF_STREAM_SCHEMA_NAME}.{SF_LOGS_STAGE_NAME}
         )
     """,
