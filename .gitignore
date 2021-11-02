@@ -133,3 +133,4 @@ node_modules/
 package.json
 package-lock.json
 .serverless/
+.DS_Store

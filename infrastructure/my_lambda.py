@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 
 import pulumi
 import pulumi_aws as aws

@@ -42,20 +42,35 @@ class MySnowflakeRoles(pulumi.ComponentResource):
         self.read_only = snowflake.Role(
             f'{name}_RO',
             name=pulumi.Output.concat(database.name, '_RO'),
-            opts=pulumi.ResourceOptions(parent=self),
+            opts=pulumi.ResourceOptions(
+                parent=self,
+                depends_on=[
+                    database,
+                    warehouse,
+                ],
+            ),
         )
 
         self.read_write = snowflake.Role(
             f'{name}_RW',
             name=pulumi.Output.concat(database.name, '_RW'),
-            opts=pulumi.ResourceOptions(parent=self),
+            opts=pulumi.ResourceOptions(
+                parent=self,
+                depends_on=[
+                    database,
+                    warehouse,
+                ],
+            ),
         )
 
         snowflake.RoleGrants(
             f'{name}_RW_ROLE',
             role_name=self.read_only.name,
             roles=[self.read_write.name],
-            opts=pulumi.ResourceOptions(parent=self.read_only),
+            opts=pulumi.ResourceOptions(
+                parent=self.read_only,
+                depends_on=[self.read_only],
+            ),
         )
 
         # Warehouse
@@ -69,7 +84,10 @@ class MySnowflakeRoles(pulumi.ComponentResource):
                     privilege=privilege,
                     warehouse_name=warehouse.name,
                     roles=[parent.name],
-                    opts=pulumi.ResourceOptions(parent=parent),
+                    opts=pulumi.ResourceOptions(
+                        parent=parent,
+                        depends_on=[parent],
+                    ),
                 )
 
         # Database
@@ -83,7 +101,10 @@ class MySnowflakeRoles(pulumi.ComponentResource):
                     privilege=privilege,
                     database_name=database.name,
                     roles=[parent.name],
-                    opts=pulumi.ResourceOptions(parent=parent),
+                    opts=pulumi.ResourceOptions(
+                        parent=parent,
+                        depends_on=[parent],
+                    ),
                 )
 
         # Schema
@@ -98,7 +119,10 @@ class MySnowflakeRoles(pulumi.ComponentResource):
                     on_future=True,
                     database_name=database.name,
                     roles=[parent.name],
-                    opts=pulumi.ResourceOptions(parent=parent),
+                    opts=pulumi.ResourceOptions(
+                        parent=parent,
+                        depends_on=[parent],
+                    ),
                 )
 
         # Table
@@ -113,7 +137,10 @@ class MySnowflakeRoles(pulumi.ComponentResource):
                     on_future=True,
                     database_name=database.name,
                     roles=[parent.name],
-                    opts=pulumi.ResourceOptions(parent=parent),
+                    opts=pulumi.ResourceOptions(
+                        parent=parent,
+                        depends_on=[parent],
+                    ),
                 )
 
         # View
@@ -128,7 +155,10 @@ class MySnowflakeRoles(pulumi.ComponentResource):
                     on_future=True,
                     database_name=database.name,
                     roles=[parent.name],
-                    opts=pulumi.ResourceOptions(parent=parent),
+                    opts=pulumi.ResourceOptions(
+                        parent=parent,
+                        depends_on=[parent],
+                    ),
                 )
 
         # Materialized View
@@ -143,7 +173,10 @@ class MySnowflakeRoles(pulumi.ComponentResource):
                     on_future=True,
                     database_name=database.name,
                     roles=[parent.name],
-                    opts=pulumi.ResourceOptions(parent=parent),
+                    opts=pulumi.ResourceOptions(
+                        parent=parent,
+                        depends_on=[parent],
+                    ),
                 )
 
         # TODO: Function

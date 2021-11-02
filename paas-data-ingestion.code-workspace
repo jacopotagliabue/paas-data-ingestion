@@ -1,17 +1,23 @@
 {
-	"folders": [
-		{
-			"name": "Root",
-			"path": "."
-		},
-		{
-			"name": "Infrastructure",
-			"path": "./infrastructure"
-		},
-		{
-			"name": "Lambda: collect",
-			"path": "./lambda/collect"
-		}
-	],
-	"settings": {}
+    "folders": [
+        {
+            "name": "DBT",
+            "path": "dbt"
+        },
+        {
+            "name": "Infrastructure",
+            "path": "infrastructure"
+        },
+        {
+            "name": "Lambda: collect",
+            "path": "lambda/collect"
+        },
+        {
+            "name": "Root",
+            "path": "."
+        }
+    ],
+    "settings": {
+        "explorer.autoReveal": false
+    }
 }
