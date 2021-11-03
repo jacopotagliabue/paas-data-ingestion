@@ -43,14 +43,8 @@ models:
         materialized: table
         +schema: EVENTS_MATERIALIZED
     stats:
-      materialized: view
+      materialized: table
       +schema: STATS
-      live:
-        materialized: view
-        +schema: STATS_LIVE
-      materialized:
-        materialized: table
-        +schema: STATS_MATERIALIZED
 
 on-run-start:
   - '{{ create_udfs() }}'

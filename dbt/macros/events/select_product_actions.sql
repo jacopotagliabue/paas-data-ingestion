@@ -8,7 +8,7 @@
     }}
 
     SELECT
-        UPPER(p.value:id::STRING) AS product_id
+          UPPER(p.value:id::STRING) AS product_id
         , UPPER(p.value:variant::STRING) AS product_variant
         , p.value:position::INT AS product_position
         , p.value:quantity::INT AS product_quantity
@@ -19,6 +19,7 @@
         , p.value:raw::VARIANT AS product_raw_data
         , NULLIF(LOWER(TRIM(l.req_body:pal::STRING)), '') AS product_action_list
         , NULLIF(UPPER(TRIM(l.req_body:cu::STRING)), '') AS currency_code
+        , NULLIF(TRIM(l.req_body:ti::STRING), '') AS transaction_id
         , l.*
     FROM
         {{ from_table }} AS l

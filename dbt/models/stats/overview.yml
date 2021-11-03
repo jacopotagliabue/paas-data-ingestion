@@ -1,0 +1,137 @@
+version: 2
+
+
+models:
+  - name: overview_1d
+    description: Daily overview stats
+    config:
+      sort: period
+    columns: &columns
+      - name: period
+        tests:
+          - unique
+          - not_null
+
+      - name: active_sessions
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: new_sessions
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+
+      - name: active_users
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: new_users
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+
+      - name: pageviews
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+
+      - name: sum_of_pa_click
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: pa_clicks
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+
+      - name: sum_of_pa_detail
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: pa_details
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+
+      - name: sum_of_pa_add
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: pa_adds
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+
+      - name: sum_of_pa_remove
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: pa_removes
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+
+      - name: transactions
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: transaction_revenue
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: transaction_tax
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: transaction_shipping
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: avg_order_value
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+
+      - name: purchased_items
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+      - name: purchased_products
+        tests:
+          - not_null
+          - compare_numeric_value:
+              gte: 0
+    tags: [stats]
+
+
+  - name: overview_1h
+    description: Hourly overview stats
+    config:
+      sort: period
+    tests:
+      - compare_models:
+          column: new_users
+          with_model: "{{ ref('overview_1d') }}"
+          with_columns: active_users
+          date_agg: TO_DATE(period)
+    columns: *columns
+    tags: [stats]

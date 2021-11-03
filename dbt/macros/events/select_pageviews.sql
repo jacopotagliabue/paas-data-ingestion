@@ -9,8 +9,6 @@
 
     SELECT *
     FROM {{ from_table }}
-    WHERE
-            hit_type = 'pageview'
-        AND NULLIF(TRIM(req_body:ec::STRING), '') IS NOT NULL
+    WHERE hit_type = 'pageview'
 
 {% endmacro %}
