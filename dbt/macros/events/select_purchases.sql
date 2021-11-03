@@ -8,7 +8,7 @@
     }}
 
     SELECT
-        NULLIF(UPPER(TRIM(req_body:ti::STRING)), '') AS transaction_id
+          NULLIF(UPPER(TRIM(req_body:ti::STRING)), '') AS transaction_id
         , NULLIF(TRIM(req_body:ta::STRING), '') AS transaction_affiliation
         , NULLIF(TRIM(req_body:tr::STRING), '') AS transaction_revenue
         , NULLIF(TRIM(req_body:tr::STRING), '') AS transaction_tax

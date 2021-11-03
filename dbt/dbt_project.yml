@@ -34,16 +34,21 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   paas_data_ingestion:
     events:
-      materialized: view
-      +schema: EVENTS
-      live:
-        materialized: view
-        +schema: EVENTS_LIVE
-      materialized:
+      +tags: ['events']
+      +materialized: view
+      unprocessed:
+        +schema: EVENTS_UNPROCESSED
+        +tags: ['unprocessed']
+      processed:
         materialized: table
-        +schema: EVENTS_MATERIALIZED
+        +schema: EVENTS
+        +tags: ['processed']
+      live:
+        +schema: EVENTS_LIVE
+        +tags: ['live']
     stats:
-      materialized: table
+      +tags: ['stats', 'processed']
+      +materialized: table
       +schema: STATS
 
 on-run-start:

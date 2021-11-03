@@ -131,7 +131,7 @@ models:
       - compare_models:
           column: new_users
           with_model: "{{ ref('overview_1d') }}"
-          with_columns: active_users
+          with_column: active_users
           date_agg: TO_DATE(period)
     columns: *columns
     tags: [stats]

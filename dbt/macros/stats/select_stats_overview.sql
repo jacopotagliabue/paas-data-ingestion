@@ -12,14 +12,14 @@
                   {{ date_agg }} AS period
                 , COUNT(DISTINCT session_id) AS active_sessions
                 , COUNT(DISTINCT user_id) AS active_users
-            FROM {{ ref('logs_materialized') }}
+            FROM {{ ref('logs') }}
             GROUP BY period
         )
         , pageviews AS (
             SELECT
                   {{ date_agg }} AS period
                 , COUNT(*) AS _count
-            FROM {{ ref('pageviews_materialized')}}
+            FROM {{ ref('pageviews')}}
             GROUP BY period
         )
         , pa AS (
@@ -30,7 +30,7 @@
                 , COUNT(DISTINCT session_id, product_id) AS count_distinct_session_products
                 , COUNT(DISTINCT product_id) AS count_distinct_product_ids
                 , SUM(product_quantity) AS sum_product_quantity
-            FROM {{ ref('product_actions_materialized')}}
+            FROM {{ ref('product_actions')}}
             GROUP BY period, product_action
         )
         , purchases AS (
@@ -40,7 +40,7 @@
                 , SUM(transaction_revenue) AS sum_revenue
                 , SUM(transaction_tax) AS sum_tax
                 , SUM(transaction_shipping) AS sum_shipping
-            FROM {{ ref('purchases_materialized')}}
+            FROM {{ ref('purchases')}}
             GROUP BY period
         )
         , new_sessions AS (
@@ -54,7 +54,7 @@
                         ORDER BY request_timestamp ASC
                     ) AS period
                     , session_id
-                FROM {{ ref('logs_materialized') }}
+                FROM {{ ref('logs') }}
             )
             GROUP BY period
         )
@@ -69,7 +69,7 @@
                         ORDER BY request_timestamp ASC
                     ) AS period
                     , user_id
-                FROM {{ ref('logs_materialized') }}
+                FROM {{ ref('logs') }}
             )
             GROUP BY period
         )

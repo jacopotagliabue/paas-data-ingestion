@@ -17,7 +17,7 @@ WITH
             , SUM(product_quantity * product_price) AS _sum_revenue
             , MIN(product_price) AS _min_price
             , MAX(product_price) AS _max_price
-        FROM {{ ref('product_actions_materialized')}}
+        FROM {{ ref('product_actions')}}
         GROUP BY TO_DATE(request_timestamp), product_action, product_id
     )
     , overview AS (
@@ -26,7 +26,7 @@ WITH
             , product_id
             , MIN(product_price) AS _min_price
             , MAX(product_price) AS _max_price
-        FROM {{ ref('product_actions_materialized')}}
+        FROM {{ ref('product_actions')}}
         GROUP BY TO_DATE(request_timestamp), product_id
     )
 

@@ -1,4 +1,4 @@
-{% test compare_sum(model, column, with_model, with_column, date_agg) %}
+{% test compare_models(model, column, with_model, with_column, date_agg) %}
 
 WITH
       source AS (

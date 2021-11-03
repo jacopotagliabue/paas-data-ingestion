@@ -8,10 +8,10 @@
     }}
 
     WITH
-        all_events AS (
+          all_events AS (
             -- Using all the most recent "first seen" purchase events
             SELECT n.*
-            FROM {{ source('raw', 'logs') }} AS n
+            FROM {{ source('RAW', 'LOGS') }} AS n
             WHERE
                     n.service_id = 'api.collect'
                 AND NULLIF(LOWER(n.data:request:body:t::STRING), '') IS NOT NULL
@@ -34,7 +34,7 @@
 
             -- Using all the other most recent events
             SELECT n.*
-            FROM {{ source('raw', 'logs') }} AS n
+            FROM {{ source('RAW', 'LOGS') }} AS n
             WHERE
                     n.service_id = 'api.collect'
                 AND NULLIF(LOWER(n.data:request:body:t::STRING), '') IS NOT NULL
@@ -52,7 +52,8 @@
         )
 
         , time_lag_sessions AS (
-            SELECT *
+            SELECT
+                  *
                 , DATE_PART('EPOCH_MILLISECOND', request_timestamp) - LAG(DATE_PART('EPOCH_MILLISECOND', request_timestamp)) OVER (
                     PARTITION BY DATE(request_timestamp), client_id
                     ORDER BY request_timestamp
@@ -61,7 +62,8 @@
         )
 
         , session_history AS (
-            SELECT *
+            SELECT
+                  *
                 , CASE
                     WHEN (time_lag IS NULL OR time_lag >= 30 * 60 * 1000) THEN
                         UUID_STRING(UUID_STRING('1ff91478-1da1-431f-b1fd-3ec39fff283c', client_id), request_id)
@@ -71,7 +73,8 @@
         )
 
         , partitioned_history AS (
-            SELECT *
+            SELECT
+                  *
                 , SUM(
                     CASE
                         WHEN new_session_id IS NULL THEN 0
@@ -85,7 +88,7 @@
         )
 
     SELECT
-        request_timestamp
+          request_timestamp
         , request_id
 
         , FIRST_VALUE(new_session_id) OVER (
