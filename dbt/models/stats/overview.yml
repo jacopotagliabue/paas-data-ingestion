@@ -5,30 +5,41 @@ models:
   - name: overview_1d
     description: Daily overview stats
     config:
-      sort: period
+      sort: timestamp
     columns: &columns
-      - name: period
+      - name: timestamp
         tests:
           - unique
           - not_null
 
-      - name: active_sessions
+      - name: count_active_sessions
         tests:
           - not_null
           - dbt_utils.expression_is_true:
               expression: '>= 0'
-      - name: new_sessions
+      - name: count_new_sessions
         tests:
           - not_null
           - dbt_utils.expression_is_true:
               expression: '>= 0'
 
-      - name: active_users
+      - name: count_active_users
         tests:
           - not_null
           - dbt_utils.expression_is_true:
               expression: '>= 0'
-      - name: new_users
+      - name: count_new_users
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: '>= 0'
+
+      - name: count_active_clients
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: '>= 0'
+      - name: count_new_clients
         tests:
           - not_null
           - dbt_utils.expression_is_true:
@@ -126,12 +137,11 @@ models:
   - name: overview_1h
     description: Hourly overview stats
     config:
-      sort: period
+      sort: timestamp
     tests:
       - compare_models:
-          column: new_users
+          column: count_new_users
           with_model: ref('overview_1d')
-          with_column: active_users
-          date_agg: TO_DATE(period)
+          with_column: count_active_users
+          date_agg: TO_DATE(timestamp)
     columns: *columns
-    tags: [stats]

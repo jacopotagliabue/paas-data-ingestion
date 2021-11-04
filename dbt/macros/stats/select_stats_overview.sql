@@ -9,80 +9,93 @@
     WITH
         overall AS (
             SELECT
-                  {{ date_agg }} AS period
-                , COUNT(DISTINCT session_id) AS active_sessions
-                , COUNT(DISTINCT user_id) AS active_users
+                  {{ date_agg }} AS timestamp
+                , COUNT(DISTINCT session_id) AS count_active_sessions
+                , COUNT(DISTINCT user_id) AS count_active_users
+                , COUNT(DISTINCT client_id) AS count_active_clients
             FROM {{ ref('logs') }}
-            GROUP BY period
+            GROUP BY timestamp
         )
         , pageviews AS (
             SELECT
-                  {{ date_agg }} AS period
+                  {{ date_agg }} AS timestamp
                 , COUNT(*) AS _count
             FROM {{ ref('pageviews')}}
-            GROUP BY period
+            GROUP BY timestamp
         )
         , pa AS (
             SELECT
-                  {{ date_agg }} AS period
+                  {{ date_agg }} AS timestamp
                 , product_action
                 , COUNT(*) AS _count
                 , COUNT(DISTINCT session_id, product_id) AS count_distinct_session_products
                 , COUNT(DISTINCT product_id) AS count_distinct_product_ids
                 , SUM(product_quantity) AS sum_product_quantity
             FROM {{ ref('product_actions')}}
-            GROUP BY period, product_action
+            GROUP BY timestamp, product_action
         )
         , purchases AS (
             SELECT
-                  {{ date_agg }} AS period
+                  {{ date_agg }} AS timestamp
                 , COUNT(DISTINCT transaction_id) AS _count
                 , SUM(transaction_revenue) AS sum_revenue
                 , SUM(transaction_tax) AS sum_tax
                 , SUM(transaction_shipping) AS sum_shipping
             FROM {{ ref('purchases')}}
-            GROUP BY period
+            GROUP BY timestamp
         )
-        , new_sessions AS (
-            SELECT
-                  period
-                , COUNT(DISTINCT session_id) AS count_distinct_session_ids
+        , sessions AS (
+            SELECT timestamp, COUNT(DISTINCT session_id) AS count_new_sessions
             FROM (
-                SELECT DISTINCT
-                      FIRST_VALUE({{ date_agg }}) OVER (
-                        PARTITION BY TO_DATE(request_timestamp), session_id
-                        ORDER BY request_timestamp ASC
-                    ) AS period
-                    , session_id
+                SELECT {{ date_agg }} AS timestamp, session_id
                 FROM {{ ref('logs') }}
+                WHERE session_id IS NOT NULL
+                QUALIFY ROW_NUMBER() OVER (
+                    PARTITION BY TO_DATE(request_timestamp), session_id
+                    ORDER BY request_timestamp
+                ) = 1
             )
-            GROUP BY period
+            GROUP BY timestamp
         )
-        , new_users AS (
-            SELECT
-                  period
-                , COUNT(DISTINCT user_id) AS count_distinct_user_ids
+        , users AS (
+            SELECT timestamp, COUNT(DISTINCT user_id) AS count_new_users
             FROM (
-                SELECT DISTINCT
-                      FIRST_VALUE({{ date_agg }}) OVER (
-                        PARTITION BY TO_DATE(request_timestamp), user_id
-                        ORDER BY request_timestamp ASC
-                    ) AS period
-                    , user_id
+                SELECT {{ date_agg }} AS timestamp, user_id
                 FROM {{ ref('logs') }}
+                WHERE user_id IS NOT NULL
+                QUALIFY ROW_NUMBER() OVER (
+                    PARTITION BY TO_DATE(request_timestamp), user_id
+                    ORDER BY request_timestamp
+                ) = 1
             )
-            GROUP BY period
+            GROUP BY timestamp
+        )
+        , clients AS (
+            SELECT timestamp, COUNT(DISTINCT client_id) AS count_new_clients
+            FROM (
+                SELECT {{ date_agg }} AS timestamp, client_id
+                FROM {{ ref('logs') }}
+                WHERE client_id IS NOT NULL
+                QUALIFY ROW_NUMBER() OVER (
+                    PARTITION BY TO_DATE(request_timestamp), client_id
+                    ORDER BY request_timestamp
+                ) = 1
+            )
+            GROUP BY timestamp
         )
 
 
     SELECT
-          o.period
+          o.timestamp
 
-        , IFNULL(o.active_sessions, 0) AS active_sessions
-        , IFNULL(new_sessions.count_distinct_session_ids, 0) AS new_sessions
+        , IFNULL(o.count_active_sessions, 0) AS count_active_sessions
+        , IFNULL(sessions.count_new_sessions, 0) AS count_new_sessions
 
-        , IFNULL(o.active_users, 0) AS active_users
-        , IFNULL(new_users.count_distinct_user_ids, 0) AS new_users
+        , IFNULL(o.count_active_users, 0) AS count_active_users
+        , IFNULL(users.count_new_users, 0) AS count_new_users
+
+        , IFNULL(o.count_active_clients, 0) AS count_active_clients
+        , IFNULL(clients.count_new_clients, 0) AS count_new_clients
 
         , IFNULL(pageviews._count, 0) AS pageviews
 
@@ -109,33 +122,28 @@
 
     FROM overall AS o
 
-    LEFT JOIN new_sessions ON
-            new_sessions.period = o.period
-    LEFT JOIN new_users ON
-            new_users.period = o.period
-
-    LEFT JOIN pageviews ON
-            pageviews.period = o.period
+    LEFT JOIN sessions ON sessions.timestamp = o.timestamp
+    LEFT JOIN users ON users.timestamp = o.timestamp
+    LEFT JOIN clients ON clients.timestamp = o.timestamp
+    LEFT JOIN pageviews ON pageviews.timestamp = o.timestamp
+    LEFT JOIN purchases ON purchases.timestamp = o.timestamp
 
     LEFT JOIN pa AS pa_click ON
-            pa_click.period = o.period
+            pa_click.timestamp = o.timestamp
         AND pa_click.product_action = 'click'
     LEFT JOIN pa AS pa_add ON
-            pa_add.period = o.period
+            pa_add.timestamp = o.timestamp
         AND pa_add.product_action = 'add'
     LEFT JOIN pa AS pa_remove ON
-            pa_remove.period = o.period
+            pa_remove.timestamp = o.timestamp
         AND pa_remove.product_action = 'remove'
     LEFT JOIN pa AS pa_detail ON
-            pa_detail.period = o.period
+            pa_detail.timestamp = o.timestamp
         AND pa_detail.product_action = 'detail'
     LEFT JOIN pa AS pa_purchase ON
-            pa_purchase.period = o.period
+            pa_purchase.timestamp = o.timestamp
         AND pa_purchase.product_action = 'purchase'
 
-    LEFT JOIN purchases ON
-            purchases.period = o.period
-
-    ORDER BY period DESC
+    ORDER BY timestamp DESC
 
 {% endmacro %}

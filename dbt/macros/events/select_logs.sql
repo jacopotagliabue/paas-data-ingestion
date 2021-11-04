@@ -87,30 +87,43 @@
             FROM session_history
         )
 
+        , sessionized_events AS (
+            SELECT
+                  *
+                , FIRST_VALUE(new_session_id) OVER (
+                    PARTITION BY TO_DATE(request_timestamp), client_id, value_partition
+                    ORDER BY request_timestamp
+                ) AS session_id
+            FROM partitioned_history
+        )
+
     SELECT
           request_timestamp
         , request_id
 
-        , FIRST_VALUE(new_session_id) OVER (
-            PARTITION BY DATE(request_timestamp), client_id, value_partition
-            ORDER BY request_timestamp
-        ) AS session_id
+        , session_id
 
         , LOWER(
             COALESCE(
-                NULLIF(TRIM(data:request:body:cid::STRING), '')
+                  NULLIF(TRIM(data:request:body:cid::STRING), '')
                 , NULLIF(TRIM(data:context:client_id::STRING), '')
             )
         ) AS client_id
+
         , LOWER(
             COALESCE(
-                NULLIF(TRIM(data:request:body:uid::STRING), '')
+                  NULLIF(TRIM(data:request:body:uid::STRING), '')
                 , NULLIF(TRIM(data:context:user_id::STRING), '')
             )
         ) AS user_id
+        , FIRST_VALUE(user_id) IGNORE NULLS OVER (
+            PARTITION BY TO_DATE(request_timestamp), session_id
+            ORDER BY request_timestamp ASC
+        ) AS session_based_user_id
+
         , LOWER(
             COALESCE(
-                NULLIF(TRIM(data:request:body:uip::STRING), '')
+                  NULLIF(TRIM(data:request:body:uip::STRING), '')
                 , NULLIF(TRIM(data:context:user_ip::STRING), '')
             )
         ) AS user_ip
@@ -119,23 +132,26 @@
         , NULLIF(TRIM(LOWER(data:request:body:pa::STRING)), '') AS product_action
         , LOWER(
             COALESCE(
-                NULLIF(TRIM(data:request:body:dl::STRING), '')
+                  NULLIF(TRIM(data:request:body:dl::STRING), '')
                 , NULLIF(TRIM(GET_IGNORE_CASE(data:request:headers, 'referer')::STRING), '')
                 , NULLIF(TRIM(data:context:document_location::STRING), '')
             )
         ) AS document_location
         , LOWER(
             COALESCE(
-                NULLIF(TRIM(data:request:body:dr::STRING), '')
+                  NULLIF(TRIM(data:request:body:dr::STRING), '')
                 , NULLIF(TRIM(data:context:document_referrer::STRING), '')
             )
         ) AS document_referrer
 
-        , {{ get_user_agent_id("COALESCE(
-            NULLIF(TRIM(data:request:body:ua::STRING), '')
-            , NULLIF(TRIM(GET_IGNORE_CASE(data:request:headers, 'user-agent')::STRING), '')
-            , NULLIF(TRIM(data:context:user_agent::STRING), '')
-        )") }} AS user_agent_id
+        {% set user_id_query %}
+            COALESCE(
+                  NULLIF(TRIM(data:request:body:ua::STRING), '')
+                , NULLIF(TRIM(GET_IGNORE_CASE(data:request:headers, 'user-agent')::STRING), '')
+                , NULLIF(TRIM(data:context:user_agent::STRING), '')
+            )
+        {% endset %}
+        , {{ get_user_agent_id(user_id_query) }} AS user_agent_id
 
         , NULLIF(TRIM(data:request:body:dt::STRING), '') AS document_title
         , NULLIF(TRIM(LOWER(data:request:body:sr::STRING)), '') AS screen_resolution
@@ -145,6 +161,6 @@
 
         , data:request:body::VARIANT AS req_body
         , log_id
-    FROM partitioned_history AS e
+    FROM sessionized_events AS e
 
 {% endmacro %}

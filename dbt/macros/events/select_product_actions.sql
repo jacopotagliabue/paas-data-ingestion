@@ -8,14 +8,14 @@
     }}
 
     SELECT
-          UPPER(p.value:id::STRING) AS product_id
-        , UPPER(p.value:variant::STRING) AS product_variant
-        , p.value:position::INT AS product_position
-        , p.value:quantity::INT AS product_quantity
-        , p.value:price::DECIMAL(10, 2) AS product_price
-        , p.value:name::STRING AS product_name
-        , p.value:brand::STRING AS product_brand
-        , p.value:category::STRING AS product_category
+          NULLIF(TRIM(UPPER(p.value:id::STRING)), '') AS product_id
+        , NULLIF(TRIM(UPPER(p.value:variant::STRING)), '') AS product_variant
+        , TRY_TO_NUMBER(p.value:position::STRING, 5, 0) AS product_position
+        , TRY_TO_DECIMAL(p.value:quantity::STRING, 10, 4) AS product_quantity
+        , TRY_TO_DECIMAL(p.value:price::STRING, 10, 4) AS product_price
+        , NULLIF(TRIM(p.value:name::STRING), '') AS product_name
+        , NULLIF(TRIM(p.value:brand::STRING), '') AS product_brand
+        , NULLIF(TRIM(p.value:category::STRING), '') AS product_category
         , p.value:raw::VARIANT AS product_raw_data
         , NULLIF(LOWER(TRIM(l.req_body:pal::STRING)), '') AS product_action_list
         , NULLIF(UPPER(TRIM(l.req_body:cu::STRING)), '') AS currency_code
