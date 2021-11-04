@@ -131,11 +131,11 @@
             )
         ) AS document_referrer
 
-        , COALESCE(
+        , {{ get_user_agent_id("COALESCE(
             NULLIF(TRIM(data:request:body:ua::STRING), '')
             , NULLIF(TRIM(GET_IGNORE_CASE(data:request:headers, 'user-agent')::STRING), '')
             , NULLIF(TRIM(data:context:user_agent::STRING), '')
-        ) AS user_agent
+        )") }} AS user_agent_id
 
         , NULLIF(TRIM(data:request:body:dt::STRING), '') AS document_title
         , NULLIF(TRIM(LOWER(data:request:body:sr::STRING)), '') AS screen_resolution

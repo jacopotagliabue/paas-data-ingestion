@@ -22,7 +22,7 @@
         , NULLIF(TRIM(l.req_body:ti::STRING), '') AS transaction_id
         , l.*
     FROM
-        {{ from_table }} AS l
+          {{ from_table }} AS l
         , LATERAL FLATTEN(input => {{ target.schema }}.udf_collect_ec_products_map(l.req_body::variant)) AS p
     WHERE l.product_action IS NOT NULL
 

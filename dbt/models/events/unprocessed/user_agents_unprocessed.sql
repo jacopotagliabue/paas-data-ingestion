@@ -1,3 +1,5 @@
+ -- depends_on: {{ ref('logs') }}
+
 {% set max_request_timestamp_query %}
     SELECT MAX(last_processed_request_timestamp) AS val
     FROM {{ ref('dbt_processes') }}
@@ -12,8 +14,9 @@
 {% endif %}
 
 {{
-    select_logs(
+    select_user_agents(
         from_date=last_processed_request_timestamp,
-        to_date=env_var('DBT_STAGE_1_MAX_DATE')
+        to_date=env_var('DBT_STAGE_0_MAX_DATE'),
+        materialized='view'
     )
 }}

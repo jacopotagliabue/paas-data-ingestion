@@ -1,6 +1,25 @@
 version: 2
 
 models:
+  - name: dbt_processes
+    description: Logs with the list of all the DBT executions
+    columns:
+      - name: invocation_id
+        description: UUID of the DBT invocation
+      - name: run_started_at
+        description: Timestamp that the DBT run started
+      - name: target_profile_name
+        description: The name of the DBT profile
+      - name: target_name
+        description: Name of the DBT target
+      - name: threads
+        description: The number of threads used by DBT
+      - name: version
+        description: Version of DBT used during the invocation
+      - name: last_processed_request_timestamp
+        description: Timestamp of the last materialized event
+
+
   - name: logs
     description: Materialized table (cached) containing all the processed & sessionized logs
     columns: &logs_columns
@@ -9,10 +28,10 @@ models:
         description: Datetime (UTC) when the event has been received
       - &request_id
         name: request_id
-        description: Unique identifier (UUID) of the event (generated client-side by the UA library)
+        description: UUID of the event (generated client-side by the UA library)
       - &session_id
         name: session_id
-        description: Unique identifier (UUID) of a visitor's session
+        description: UUID of a visitor's session
       - &client_id
         name: client_id
         description: This pseudonymously identifies a particular user, device, or browser instance [cid]
@@ -34,9 +53,9 @@ models:
       - &document_referrer
         name: document_referrer
         description: Specifies which referral source brought traffic to a website [dr]
-      - &user_agent
-        name: user_agent
-        description: The User Agent of the browser [ua]
+      - &user_agent_id
+        name: user_agent_id
+        description: The User Agent Id computed by using [ua]
       - &document_title
         name: document_title
         description: The title of the page / document [dt]
@@ -57,23 +76,29 @@ models:
         description: RAW payload of the event
       - &log_id
         name: log_id
-        description: Unique identifier (UUID) of the internal log
+        description: UUID of the internal log
+
   - name: logs_live
     description: Near-realtime view (very slow) of all the materialized + unprocessed logs
     columns: *logs_columns
+
   - name: logs_unprocessed
     description: View containing only the new logs we still have to process
     columns: *logs_columns
 
+
   - name: pageviews
     description: Materialized table (cached) containing all the pagevies
     columns: *logs_columns
+
   - name: pageviews_live
     description: Near-realtime view (very slow) of all the materialized + unprocessed pageviews
     columns: *logs_columns
+
   - name: pageviews_unprocessed
     description: View containing only the new pageviews we still have to process
     columns: *logs_columns
+
 
   - name: events
     description: Materialized table (cached) containing all the pagevies
@@ -96,7 +121,7 @@ models:
       - *product_action
       - *document_location
       - *document_referrer
-      - *user_agent
+      - *user_agent_id
       - *document_title
       - *screen_resolution
       - *document_encoding
@@ -104,12 +129,15 @@ models:
       - *user_language
       - *req_body
       - *log_id
+
   - name: events_live
     description: Near-realtime view (very slow) of all the materialized + unprocessed events
     columns: *events_columns
+
   - name: events_unprocessed
     description: View containing only the new events we still have to process
     columns: *events_columns
+
 
   - name: product_actions
     description: Materialized table (cached) containing all the product actions
@@ -148,7 +176,7 @@ models:
       - *product_action
       - *document_location
       - *document_referrer
-      - *user_agent
+      - *user_agent_id
       - *document_title
       - *screen_resolution
       - *document_encoding
@@ -156,12 +184,15 @@ models:
       - *user_language
       - *req_body
       - *log_id
+
   - name: product_actions_live
     description: Near-realtime view (very slow) of all the materialized + unprocessed product actions
     columns: *product_actions_columns
+
   - name: product_actions_unprocessed
     description: View containing only the new product actions we still have to process
     columns: *product_actions_columns
+
 
   - name: purchases
     description: Materialized table (cached) containing all the purchases
@@ -188,7 +219,7 @@ models:
       - *product_action
       - *document_location
       - *document_referrer
-      - *user_agent
+      - *user_agent_id
       - *document_title
       - *screen_resolution
       - *document_encoding
@@ -196,9 +227,54 @@ models:
       - *user_language
       - *req_body
       - *log_id
+
   - name: purchases_live
     description: Near-realtime view (very slow) of all the materialized + unprocessed purchases
     columns: *purchases_columns
+
   - name: purchases_unprocessed
     description: View containing only the new purchases we still have to process
     columns: *purchases_columns
+
+
+  - name: user_agents
+    description: Materialized table (cached) containing all the user-agents known by the system
+    columns: &user_agents_columns
+      - name: user_agent_id
+        description: The unique identifier of the user-agent
+        tests:
+          - not_null
+      - name: user_agent
+        description: The User Agent of the browser
+        tests:
+          - not_null
+      - name: browser_name
+        description: The name of the browser (Chrome)
+      - name: browser_version
+        description: The version of the browser (79.0.3945.116)
+      - name: browser_major
+        description: The major version of the browser (79)
+      - name: os_name
+        description: The name of the OS (iOS)
+      - name: os_version
+        description: The version of the OS (11.2.1)
+      - name: device_type
+        description: The type of the device (mobile)
+      - name: device_model
+        description: The model of the device (iPhone)
+      - name: device_vendor
+        description: The vendor of the device (Apple)
+      - name: cpu_architecture
+        description: The CPI architecture of the device (arm64)
+      - name: engine_name
+        description: The name of the browser's engine (Blink)
+      - name: engine_version
+        description: The version of the browser's engine (79.0.3945.116)
+
+  - name: user_agents_live
+    description: Near-realtime view (very slow) of all the materialized + unprocessed user-agents
+    columns: *user_agents_columns
+
+  - name: user_agents_unprocessed
+    description: View containing only the new user-agents we still have to process
+    columns: *user_agents_columns
