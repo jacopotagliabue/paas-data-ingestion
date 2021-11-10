@@ -1,12 +1,22 @@
 {{
     config(
-        alias='logs'
+        alias='logs',
+        materialized='view'
     )
-}}
+-}}
 
 
-SELECT * FROM {{ ref('logs_unprocessed') }}
+{%- set threshold = get_events_threshold(ref('logs')) -%}
 
-UNION ALL
 
-SELECT * FROM {{ ref('logs') }}
+SELECT *
+FROM {{ ref('logs_staged') }}
+
+UNION
+
+SELECT *
+FROM {{ ref('logs') }}
+{% if threshold != False -%}
+    WHERE TO_DATE(request_timestamp) < TO_DATE('{{ threshold }}')
+{%- endif %}
+

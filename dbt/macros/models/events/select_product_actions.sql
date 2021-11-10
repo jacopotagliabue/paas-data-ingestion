@@ -1,14 +1,17 @@
-{% macro select_product_actions(from_table) %}
+{% macro select_product_actions(from_table, materialized='view') -%}
 
-    {{
+    {{-
         config(
             alias='product_actions',
-            cluster_by=['TO_DATE(request_timestamp)', 'product_action']
+            cluster_by=['TO_DATE(request_timestamp)', 'product_action'],
+            materialized=materialized,
+            unique_key='id'
         )
-    }}
+    -}}
 
     SELECT
-          NULLIF(TRIM(UPPER(p.value:id::STRING)), '') AS product_id
+          CONCAT(log_id, '.', p.index) AS id
+        , NULLIF(TRIM(UPPER(p.value:id::STRING)), '') AS product_id
         , NULLIF(TRIM(UPPER(p.value:variant::STRING)), '') AS product_variant
         , TRY_TO_NUMBER(p.value:position::STRING, 5, 0) AS product_position
         , TRY_TO_DECIMAL(p.value:quantity::STRING, 10, 4) AS product_quantity
@@ -26,4 +29,4 @@
         , LATERAL FLATTEN(input => {{ target.schema }}.udf_collect_ec_products_map(l.req_body::variant)) AS p
     WHERE l.product_action IS NOT NULL
 
-{% endmacro %}
+{%- endmacro %}

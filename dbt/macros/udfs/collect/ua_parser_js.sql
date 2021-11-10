@@ -1,4 +1,4 @@
-{% macro create_udf_ua_parser_js() %}
+{% macro create_udf_ua_parser_js() -%}
 
     CREATE OR REPLACE FUNCTION udf_ua_parser_js(UA string)
         RETURNS variant
@@ -826,4 +826,4 @@
     $$
     ;
 
-{% endmacro %}
+{%- endmacro %}

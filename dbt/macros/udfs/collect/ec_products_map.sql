@@ -1,4 +1,4 @@
-{% macro create_udf_collect_ec_products_map() %}
+{% macro create_udf_collect_ec_products_map() -%}
 
     CREATE OR REPLACE FUNCTION udf_collect_ec_products_map(MP variant)
         RETURNS array
@@ -40,4 +40,4 @@
     $$
     ;
 
-{% endmacro %}
+{%- endmacro %}

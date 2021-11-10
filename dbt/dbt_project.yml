@@ -36,18 +36,16 @@ models:
     events:
       +tags: ['events']
       +materialized: view
-      unprocessed:
-        +schema: EVENTS_UNPROCESSED
-        +tags: ['unprocessed']
-      processed:
-        materialized: table
+      marts:
+        +materialized: incremental
         +schema: EVENTS
-        +tags: ['processed']
+        +tags: ['materialized']
       live:
+        +materialized: view
         +schema: EVENTS_LIVE
-        +tags: ['live']
+        +tags: ['view']
     stats:
-      +tags: ['stats', 'processed']
+      +tags: ['stats', 'materialized']
       +materialized: table
       +schema: STATS
 

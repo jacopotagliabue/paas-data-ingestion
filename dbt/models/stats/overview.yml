@@ -1,147 +1,195 @@
 version: 2
 
 
+tests:
+  gte_zero: &gte_zero
+    dbt_utils.expression_is_true:
+      expression: '>= 0'
+
+colum_definitions:
+  timestamp: &timestamp
+    name: timestamp
+    description: Daily and hourly representation of the analyzed data
+  count_active_sessions: &count_active_sessions
+    name: count_active_sessions
+    description: Any session in which the visitor is still exploring your web application is considered an "Active Session"
+  count_new_sessions: &count_new_sessions
+    name: count_new_sessions
+    description: Any session started whin the timeframe
+  count_active_users: &count_active_users
+    name: count_active_users
+    description: The number of LOGGED IN unique users (count of user_id) who initiated sessions in a given day or hour
+  count_new_users: &count_new_users
+    name: count_new_users
+    description: Any session for a LOGGED IN USER started whin the timeframe
+  count_active_clients: &count_active_clients
+    name: count_active_clients
+    description: The number of clients/browser (count of client_id) who initiated sessions in a given day or hour
+  count_new_clients: &count_new_clients
+    name: count_new_clients
+    description: Any session for a client/browser started whin the timeframe
+  pageviews: &pageviews
+    name: pageviews
+    description: Total number of pageviews acrossed timeframes
+  sum_of_product_clicks: &sum_of_product_clicks
+    name: sum_of_product_clicks
+    description: Count of ALL product clicks (no filter) acrossed timeframes
+  product_clicks: &product_clicks
+    name: product_clicks
+    description: ???
+  sum_of_product_details: &sum_of_product_details
+    name: sum_of_product_details
+    description: ???
+  product_details: &product_details
+    name: product_details
+    description: ???
+  sum_of_add_to_cart: &sum_of_add_to_cart
+    name: sum_of_add_to_cart
+    description: ??
+  add_to_cart: &add_to_cart
+    name: add_to_cart
+    description: ??
+  sum_of_remove_from_cart: &sum_of_remove_from_cart
+    name: sum_of_remove_from_cart
+    description: ??
+  remove_from_cart: &remove_from_cart
+    name: remove_from_cart
+    description: ??
+  transactions: &transactions
+    name: transactions
+    description: Total number of transactions
+  transaction_revenue: &transaction_revenue
+    name: transaction_revenue
+    description: The total revenue for all the transactions in the timeframe
+  transaction_tax: &transaction_tax
+    name: transaction_tax
+    description: The total taxes for all the transactions in the timeframe
+  transaction_shipping: &transaction_shipping
+    name: transaction_shipping
+    description: The total shipping costs for all the transactions in the timeframe
+  purchased_items: &purchased_items
+    name: purchased_items
+    description: Total number of items (quantities) purchased in the timeframe
+  purchased_products: &purchased_products
+    name: purchased_products
+    description: Total number of unique products purchased in the timeframe
+
+
 models:
+
   - name: overview_1d
     description: Daily overview stats
     config:
       sort: timestamp
-    columns: &columns
-      - name: timestamp
+    columns: &overview_columns
+      - <<: *timestamp
         tests:
           - unique
           - not_null
-
-      - name: count_active_sessions
+      - <<: *count_active_sessions
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: count_new_sessions
+          - <<: *gte_zero
+      - <<: *count_new_sessions
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-
-      - name: count_active_users
+          - <<: *gte_zero
+      - <<: *count_active_users
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: count_new_users
+          - <<: *gte_zero
+      - <<: *count_new_users
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-
-      - name: count_active_clients
+          - <<: *gte_zero
+      - <<: *count_active_clients
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: count_new_clients
+          - <<: *gte_zero
+      - <<: *count_new_clients
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-
-      - name: pageviews
+          - <<: *gte_zero
+      - <<: *pageviews
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-
-      - name: sum_of_pa_click
+          - <<: *gte_zero
+      - <<: *sum_of_product_clicks
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: pa_clicks
+          - <<: *gte_zero
+      - <<: *product_clicks
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-
-      - name: sum_of_pa_detail
+          - <<: *gte_zero
+      - <<: *sum_of_product_details
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: pa_details
+          - <<: *gte_zero
+      - <<: *product_details
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-
-      - name: sum_of_pa_add
+          - <<: *gte_zero
+      - <<: *sum_of_add_to_cart
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: pa_adds
+          - <<: *gte_zero
+      - <<: *add_to_cart
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-
-      - name: sum_of_pa_remove
+          - <<: *gte_zero
+      - <<: *sum_of_remove_from_cart
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: pa_removes
+          - <<: *gte_zero
+      - <<: *remove_from_cart
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-
-      - name: transactions
+          - <<: *gte_zero
+      - <<: *transactions
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: transaction_revenue
+          - <<: *gte_zero
+      - <<: *transaction_revenue
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: transaction_tax
+          - <<: *gte_zero
+      - <<: *transaction_tax
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: transaction_shipping
+          - <<: *gte_zero
+      - <<: *transaction_shipping
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: avg_order_value
+          - <<: *gte_zero
+      - <<: *purchased_items
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-
-      - name: purchased_items
+          - <<: *gte_zero
+      - <<: *purchased_products
         tests:
           - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-      - name: purchased_products
-        tests:
-          - not_null
-          - dbt_utils.expression_is_true:
-              expression: '>= 0'
-    tags: [stats]
+          - <<: *gte_zero
 
 
   - name: overview_1h
     description: Hourly overview stats
     config:
       sort: timestamp
+    columns: *overview_columns
     tests:
+      - compare_models:
+          column: count_new_sessions
+          with_model: ref('overview_1d')
+          with_column: count_active_sessions
+          date_agg: TO_DATE(timestamp)
       - compare_models:
           column: count_new_users
           with_model: ref('overview_1d')
           with_column: count_active_users
           date_agg: TO_DATE(timestamp)
-    columns: *columns
+      - compare_models:
+          column: count_new_clients
+          with_model: ref('overview_1d')
+          with_column: count_active_clients
+          date_agg: TO_DATE(timestamp)

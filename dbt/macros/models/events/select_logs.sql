@@ -1,11 +1,13 @@
-{% macro select_logs(from_date=False, to_date=False) %}
+{% macro select_logs(from_date=False, to_date=False, alias='logs', materialized='view') -%}
 
-    {{
+    {{-
         config(
-            alias='logs',
-            cluster_by=['TO_DATE(request_timestamp)']
+            alias=alias,
+            cluster_by=['TO_DATE(request_timestamp)'],
+            materialized=materialized,
+            unique_key='log_id'
         )
-    }}
+    -}}
 
     WITH
           all_events AS (
@@ -15,12 +17,12 @@
             WHERE
                     n.service_id = 'api.collect'
                 AND NULLIF(LOWER(n.data:request:body:t::STRING), '') IS NOT NULL
-                {% if from_date != False %}
-                    AND TO_DATE(n.request_timestamp) > TO_DATE('{{ from_date }}')
-                {% endif %}
-                {% if to_date != False %}
-                    AND TO_DATE(n.request_timestamp) <= TO_DATE('{{ to_date }}')
-                {% endif %}
+                {% if from_date != False -%}
+                    AND n.request_timestamp >= TO_TIMESTAMP_NTZ('{{ from_date }}')
+                {%- endif %}
+                {% if to_date != False -%}
+                    AND n.request_timestamp < TO_TIMESTAMP_NTZ('{{ to_date }}')
+                {%- endif %}
                 --
                 AND NULLIF(TRIM(LOWER(n.data:request:body:pa::STRING)), '') = 'purchase'
                 AND NULLIF(TRIM(n.data:request:body:ti::STRING), '') IS NOT NULL
@@ -38,12 +40,12 @@
             WHERE
                     n.service_id = 'api.collect'
                 AND NULLIF(LOWER(n.data:request:body:t::STRING), '') IS NOT NULL
-                {% if from_date != False %}
-                    AND TO_DATE(n.request_timestamp) > TO_DATE('{{ from_date }}')
-                {% endif %}
-                {% if to_date != False %}
-                    AND TO_DATE(n.request_timestamp) <= TO_DATE('{{ to_date }}')
-                {% endif %}
+                {% if from_date != False -%}
+                    AND n.request_timestamp >= TO_TIMESTAMP_NTZ('{{ from_date }}')
+                {%- endif %}
+                {% if to_date != False -%}
+                    AND n.request_timestamp < TO_TIMESTAMP_NTZ('{{ to_date }}')
+                {%- endif %}
                 --
                 AND (
                         NULLIF(TRIM(LOWER(n.data:request:body:pa::STRING)), '') IS NULL
@@ -127,6 +129,10 @@
                 , NULLIF(TRIM(data:context:user_ip::STRING), '')
             )
         ) AS user_ip
+        , FIRST_VALUE(user_ip) IGNORE NULLS OVER (
+            PARTITION BY TO_DATE(request_timestamp), session_id
+            ORDER BY request_timestamp ASC
+        ) AS session_based_user_ip
 
         , TRIM(LOWER(data:request:body:t::STRING)) AS hit_type
         , NULLIF(TRIM(LOWER(data:request:body:pa::STRING)), '') AS product_action
@@ -144,13 +150,13 @@
             )
         ) AS document_referrer
 
-        {% set user_id_query %}
+        {% set user_id_query -%}
             COALESCE(
                   NULLIF(TRIM(data:request:body:ua::STRING), '')
                 , NULLIF(TRIM(GET_IGNORE_CASE(data:request:headers, 'user-agent')::STRING), '')
                 , NULLIF(TRIM(data:context:user_agent::STRING), '')
             )
-        {% endset %}
+        {%- endset %}
         , {{ get_user_agent_id(user_id_query) }} AS user_agent_id
 
         , NULLIF(TRIM(data:request:body:dt::STRING), '') AS document_title
@@ -161,6 +167,7 @@
 
         , data:request:body::VARIANT AS req_body
         , log_id
+        , SYSDATE()::TIMESTAMP_NTZ AS created_at
     FROM sessionized_events AS e
 
-{% endmacro %}
+{%- endmacro %}

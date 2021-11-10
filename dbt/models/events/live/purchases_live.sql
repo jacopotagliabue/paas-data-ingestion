@@ -1,12 +1,26 @@
 {{
     config(
-        alias='purchases'
+        alias='purchases',
+        materialized='view'
     )
-}}
+-}}
 
 
-SELECT * FROM {{ ref('purchases_unprocessed') }}
+{%- set threshold = get_events_threshold(ref('logs')) -%}
+
+
+SELECT * FROM (
+    {{
+        select_purchases(
+            from_table=ref('logs_staged')
+        )
+    }}
+)
 
 UNION ALL
 
-SELECT * FROM {{ ref('purchases') }}
+SELECT *
+FROM {{ ref('purchases') }}
+{% if threshold != False -%}
+    WHERE TO_DATE(request_timestamp) < TO_DATE('{{ threshold }}')
+{%- endif %}

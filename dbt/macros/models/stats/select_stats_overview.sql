@@ -1,10 +1,12 @@
-{% macro select_stats_overview(alias, date_agg, cluster_by='') %}
-    {{
+{% macro select_stats_overview(alias, date_agg, cluster_by='') -%}
+
+    {{-
         config(
             alias=alias,
-            cluster_by=cluster_by
+            cluster_by=cluster_by,
+            unique_key='timestamp'
         )
-    }}
+    -}}
 
     WITH
         overall AS (
@@ -99,26 +101,27 @@
 
         , IFNULL(pageviews._count, 0) AS pageviews
 
-        , IFNULL(pa_click._count, 0) AS sum_of_pa_click
-        , IFNULL(pa_click.count_distinct_session_products, 0) AS pa_clicks
+        , IFNULL(pa_click._count, 0) AS sum_of_product_clicks
+        , IFNULL(pa_click.count_distinct_session_products, 0) AS product_clicks
 
-        , IFNULL(pa_detail._count, 0) AS sum_of_pa_detail
-        , IFNULL(pa_detail.count_distinct_session_products, 0) AS pa_details
+        , IFNULL(pa_detail._count, 0) AS sum_of_product_details
+        , IFNULL(pa_detail.count_distinct_session_products, 0) AS product_details
 
-        , IFNULL(pa_add._count, 0) AS sum_of_pa_add
-        , IFNULL(pa_add.count_distinct_session_products, 0) AS pa_adds
+        , IFNULL(pa_add._count, 0) AS sum_of_add_to_cart
+        , IFNULL(pa_add.count_distinct_session_products, 0) AS add_to_cart
 
-        , IFNULL(pa_remove._count, 0) AS sum_of_pa_remove
-        , IFNULL(pa_remove.count_distinct_session_products, 0) AS pa_removes
+        , IFNULL(pa_remove._count, 0) AS sum_of_remove_from_cart
+        , IFNULL(pa_remove.count_distinct_session_products, 0) AS remove_from_cart
 
         , IFNULL(purchases._count, 0) AS transactions
         , IFNULL(purchases.sum_revenue, 0.0) AS transaction_revenue
         , IFNULL(purchases.sum_tax, 0.0) AS transaction_tax
         , IFNULL(purchases.sum_shipping, 0.0) AS transaction_shipping
-        , DIV0(transaction_revenue, transactions) AS avg_order_value
 
         , IFNULL(pa_purchase.sum_product_quantity, 0) AS purchased_items
         , IFNULL(pa_purchase.count_distinct_product_ids, 0) AS purchased_products
+
+        , SYSDATE()::timestamp_ntz AS created_at
 
     FROM overall AS o
 
@@ -146,4 +149,4 @@
 
     ORDER BY timestamp DESC
 
-{% endmacro %}
+{%- endmacro %}
