@@ -13,7 +13,7 @@ SELECT * FROM (
     {{
         select_user_agents(
             from_date=threshold,
-            to_date=env_var('DBT_STAGE_1_MAX_DATE'),
+            to_date=False,
         )
     }}
 )

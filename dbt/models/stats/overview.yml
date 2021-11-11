@@ -9,52 +9,52 @@ tests:
 colum_definitions:
   timestamp: &timestamp
     name: timestamp
-    description: Daily and hourly representation of the analyzed data
+    description: Data analysis period
   count_active_sessions: &count_active_sessions
     name: count_active_sessions
-    description: Any session in which the visitor is still exploring your web application is considered an "Active Session"
+    description: The number of SESSIONS (distinct session_id) who were still exploring the website
   count_new_sessions: &count_new_sessions
     name: count_new_sessions
-    description: Any session started whin the timeframe
+    description: Any session started in the timeframe
   count_active_users: &count_active_users
     name: count_active_users
-    description: The number of LOGGED IN unique users (count of user_id) who initiated sessions in a given day or hour
+    description: The number of LOGGED IN unique users (distinct user_id) who were still exploring the website
   count_new_users: &count_new_users
     name: count_new_users
-    description: Any session for a LOGGED IN USER started whin the timeframe
+    description: Any session for a LOGGED IN USER started in the timeframe
   count_active_clients: &count_active_clients
     name: count_active_clients
-    description: The number of clients/browser (count of client_id) who initiated sessions in a given day or hour
+    description: The number of clients/browsers (distinct client_id) who were still exploring the website
   count_new_clients: &count_new_clients
     name: count_new_clients
-    description: Any session for a client/browser started whin the timeframe
+    description: The number of clients/browsers start visiting the website in the timeframe
   pageviews: &pageviews
     name: pageviews
-    description: Total number of pageviews acrossed timeframes
+    description: Total number of pageviews
   sum_of_product_clicks: &sum_of_product_clicks
     name: sum_of_product_clicks
-    description: Count of ALL product clicks (no filter) acrossed timeframes
+    description: Count of ALL product clicks
   product_clicks: &product_clicks
     name: product_clicks
-    description: ???
+    description: The number of distinct clicked products (session-based) in the timeframe
   sum_of_product_details: &sum_of_product_details
     name: sum_of_product_details
-    description: ???
+    description: Count of ALL product details
   product_details: &product_details
     name: product_details
-    description: ???
+    description: The number of distinct viewed products (session-based) in the timeframe
   sum_of_add_to_cart: &sum_of_add_to_cart
     name: sum_of_add_to_cart
-    description: ??
+    description: Count of ALL the product added to the cart
   add_to_cart: &add_to_cart
     name: add_to_cart
-    description: ??
+    description: The number of distinct added products (session-based) in the timeframe
   sum_of_remove_from_cart: &sum_of_remove_from_cart
     name: sum_of_remove_from_cart
-    description: ??
+    description: Count of ALL the product removed frmo the cart
   remove_from_cart: &remove_from_cart
     name: remove_from_cart
-    description: ??
+    description: The number of distinct removed products (session-based) in the timeframe
   transactions: &transactions
     name: transactions
     description: Total number of transactions

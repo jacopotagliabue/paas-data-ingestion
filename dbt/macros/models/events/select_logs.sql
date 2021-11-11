@@ -118,10 +118,9 @@
                 , NULLIF(TRIM(data:context:user_id::STRING), '')
             )
         ) AS user_id
-        , FIRST_VALUE(user_id) IGNORE NULLS OVER (
+        , ARRAY_AGG(DISTINCT user_id) OVER (
             PARTITION BY TO_DATE(request_timestamp), session_id
-            ORDER BY request_timestamp ASC
-        ) AS session_based_user_id
+        ) AS session_based_user_ids
 
         , LOWER(
             COALESCE(
@@ -129,10 +128,9 @@
                 , NULLIF(TRIM(data:context:user_ip::STRING), '')
             )
         ) AS user_ip
-        , FIRST_VALUE(user_ip) IGNORE NULLS OVER (
+        , ARRAY_AGG(DISTINCT user_ip) OVER (
             PARTITION BY TO_DATE(request_timestamp), session_id
-            ORDER BY request_timestamp ASC
-        ) AS session_based_user_ip
+        ) AS session_based_user_ips
 
         , TRIM(LOWER(data:request:body:t::STRING)) AS hit_type
         , NULLIF(TRIM(LOWER(data:request:body:pa::STRING)), '') AS product_action
