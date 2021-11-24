@@ -62,8 +62,14 @@ def pump(event, context):
             time.sleep(0.5)
 
     return
+    
+
+def pump_events():
 
 
 
-# if you uncomment this and run it locally, it will do a post request to test the endpoint
-post_payload(COLLECT_URL, create_artificial_event())
+    return
+
+
+if __name__ == "__main__":
+    pump_events()
