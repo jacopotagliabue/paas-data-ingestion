@@ -1,25 +1,32 @@
-import requests
+"""
+
+    This simple script will use real-world e-commerce data coming from the Coveo dataset to send realistic 
+    events to the /collect endpoint that powers the ingestion pipeline at the heart of this repository.
+
+    The dataset is freely available for research purposes at:
+
+    https://github.com/coveooss/SIGIR-ecom-data-challenge
+
+    Don't forget to star the repo if you use the dataset ;-)
+
+    Of course, you could send to /collect your own Google Analytics-like events if you wish, or even totally 
+    random events: while nothing hinges on the specificity of the chosen data stream, we thought it was better for
+    pedagogical reasons to actually use events coming from a real distribution.
+
+"""
+
+
 import time
-from random import choice
+from random import choice, randint
 import uuid
 import os
-
-
-IS_DEBUG = True  # if true, print more stuff in CloudWatch for debugging purposes 
-# need to save in the ENV variables the URL corresponding to the AWS lambda
-# deployed as the collect endpoint
-# save it as: https://XXXX.execute-api.us-west-2.amazonaws.com/dev for example, with no / 
-# at the end
-# TODO: FIX THIS AS NOW IT IS HARDCODED IN YML, BUT WE SHOULD PASS THIS FROM CLI WHEN DEPLOYING
-COLLECT_URL = '{}/collect'.format(os.environ['COLLECT'])
-print('Target URL is {}'.format(COLLECT_URL))
-N_EVENTS_PER_RUN = 50
-# create X random "clients" to assign events to
-CIDs = [str(uuid.uuid4()) for _ in range(5)] 
+import requests
 
 
 def post_payload(collect_url: str, event: dict):
     r = requests.post(collect_url, json=event)
+    # just return the status code as we don't expect anything from 
+    # the /collect endpoint if not for a simple acknowledgment
     return r.status_code
 
 
@@ -40,31 +47,41 @@ def create_artificial_event():
     return client_event
 
 
-def pump(event, context):
+def send_event(
+    row: dict,
+    collect_url: str,
+    ):
     """
-    This function runs on a chron and just simulate Google Analytics-like payloads sent to the 
-    ingestion endpoint
+    Given the metadata in the row of the original dataset, create a GA event 
+    and make the HTTP request
+    """
+    try:
+        event = create_artificial_event()
+        status_code = post_payload(collect_url, event)
+    except Exception as ex:
+        # we don't really care about errors here and there, 
+        # as long as most messages are sent over - we just print errors for inspections
+        print("ERROR IN POSTING TO COLLECT: \n {} \n".format(ex))
+        return False
+    finally:
+        # randomize sending intervals
+        time.sleep(randint(5, 500) / 1000.0)
+
+    return True
+
+
+def pump_events(
+    data_folder: str,
+    collect_url: str,
+    n_events: int
+
+):
+    """
+        Loop over a dataset of real events, simulate Google Analytics-like payloads and send 
+        them to the ingestion endpoint
     """
 
-    # every run, create N events
-    for idx in range(0, N_EVENTS_PER_RUN):
-        try:
-            event = create_artificial_event()
-            if IS_DEBUG:
-                print(event)
-            status_code = post_payload(COLLECT_URL, event)
-        except Exception as ex:
-            # we don't really care about errors here and there, 
-            # as long as most messages are sent over - we just log
-            # errors in Cloudwatch for inspections
-            print("ERROR IN POSTING TO COLLECT", ex)
-        finally:
-            time.sleep(0.5)
 
-    return
-    
-
-def pump_events():
 
 
 
@@ -72,4 +89,22 @@ def pump_events():
 
 
 if __name__ == "__main__":
-    pump_events()
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except:
+        pass
+
+    # make sure we have the data folder variable set, otherwise fail
+    # this should be the folder containing the csv file from the Coveo Dataset
+    assert os.environ['DATA_FOLDER']
+    # make sure we know where to send events
+    assert os.environ['COLLECT']
+    # some global vars for the data pump
+    N_EVENTS = 100000
+
+    pump_events(
+        data_folder=os.environ['DATA_FOLDER'],
+        collect_url=os.environ['COLLECT'],
+        n_events=N_EVENTS
+    )
