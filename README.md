@@ -16,7 +16,7 @@ Finally, it is worth mentioning that the repository is e-commerce related as a c
 
 * our own experience in building [pipelines for the industry](https://github.com/jacopotagliabue/you-dont-need-a-bigger-boat);
 * the availability of high-volume, high-quality data to simulate a realistic scenario;
-* finally, the high bar set by e-commerce as far as data quantity and data-driven applications: due to the nature of the business and the competition, even medium-sized digital shops tend to produce an enormous amount of data, and to run pretty sophisticated ML flows on top it - in other words, by something that works for e-commerce is going to reasonably work for many other use cases out of the box, as they are likely less data intensive and less sophisticated ML-wise.
+* finally, the high bar set by e-commerce as far as data quantity and data-driven applications: due to the nature of the business and the competition, even medium-sized digital shops tend to produce an enormous amount of data, and to run pretty sophisticated ML flows on top it - in other words, something that works for e-commerce is going to reasonably work for many other use cases out of the box, as they are likely less data intensive and less sophisticated ML-wise.
 
 Our goal was to keep the code realistic enough for the target use cases, but simple enough as to make it easy for everybody to port this stack to a different industry.
 
