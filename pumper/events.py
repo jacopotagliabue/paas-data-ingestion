@@ -115,6 +115,6 @@ def create_purchase(row: dict, metadata: dict):
         # transaction id: https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#ti
         "ti": str(uuid.uuid4()),
         # revenue, here = to the product price
-        "tr": float(product['pr1pr'])
+        "tr": float(product['pr1pr']) if product['pr1pr'] else 0.0
     }
     return  {**basic, **purchase, **product}

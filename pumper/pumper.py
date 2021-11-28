@@ -147,7 +147,7 @@ if __name__ == "__main__":
     # make sure we know where to send events
     assert os.environ['COLLECT_URL']
     # some global vars for the data pump
-    N_EVENTS = 10000
+    N_EVENTS = 100000
 
     pump_events(
         data_folder=os.environ['DATA_FOLDER'],
