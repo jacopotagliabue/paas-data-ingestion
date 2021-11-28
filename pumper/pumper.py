@@ -102,7 +102,7 @@ def pumper_loop(dataset_file: str, catalog_map: dict, collect_url: str, n_events
                 print("Reached {} events: quitting!".format(idx))
                 return True
             # print some debugging stuff
-            if idx and idx % 5000 == 0:
+            if idx and idx % 200 == 0:
                 print("Reached {} events!".format(idx))
             # send event
             is_sent = send_event(

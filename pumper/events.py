@@ -60,11 +60,9 @@ def create_base_properties(row: dict):
         }
 
 
-def create_product_properties(row: dict, metadata: dict):
-    properties = metadata.get(row['product_sku_hash'], None)
-
+def create_product_properties(sku: str, properties: dict):
     return {
-        "pr1id": row['product_sku_hash'],
+        "pr1id": sku,
         "pr1pr": properties['price_bucket'] if properties else '0.0',
         "pr1ca": properties['category_hash'] if properties else 'NOCAT'
     }
@@ -80,7 +78,7 @@ def create_pageview(row: dict):
 
 def create_detail(row: dict, metadata: dict):
     basic = create_base_properties(row)
-    product = create_product_properties(row, metadata)
+    product = create_product_properties(row['product_sku_hash'], metadata)
     detail = {
         "t": "event",
         "pa": "detail"
@@ -89,7 +87,7 @@ def create_detail(row: dict, metadata: dict):
 
 
 def create_add(row: dict, metadata: dict):
-    product = create_product_properties(row, metadata)
+    product = create_product_properties(row['product_sku_hash'], metadata)
     basic = create_base_properties(row)
     add = {
         "t": "event",
@@ -99,7 +97,7 @@ def create_add(row: dict, metadata: dict):
 
 
 def create_remove(row: dict, metadata: dict):
-    product = create_product_properties(row, metadata)
+    product = create_product_properties(row['product_sku_hash'], metadata)
     basic = create_base_properties(row)
     remove = {
         "t": "event",
@@ -109,7 +107,7 @@ def create_remove(row: dict, metadata: dict):
 
 
 def create_purchase(row: dict, metadata: dict):
-    product = create_product_properties(row, metadata)
+    product = create_product_properties(row['product_sku_hash'], metadata)
     basic = create_base_properties(row)
     purchase = {
         "t": "event",
