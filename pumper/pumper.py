@@ -24,14 +24,19 @@ from events import create_pageview, create_add, create_detail, create_purchase, 
 import csv
 
 
-def post_payload(collect_url: str, event: dict):
-    import requests
-    # use requests to post the payload
-    r = requests.post(collect_url, json=event)
-    # just return the status code as we don't expect anything from 
-    # the /collect endpoint if not for a simple acknowledgment
-    return r.status_code
+async def post_all_events(collect_url: str, events: list):
+    import aiohttp
 
+    async with aiohttp.ClientSession() as session:
+        for idx, event in enumerate(events):
+            # print some debugging stuff
+            if idx and idx % 500 == 0:
+                print("Reached {} events!".format(idx))
+            async with session.post(collect_url, json=event) as resp:
+                await resp.read()
+                # print(event['z'])
+
+    return
 
 def create_artificial_event(row: dict, product_metadata: dict) -> dict:
     if row['event_type'] == 'pageview':
@@ -53,27 +58,6 @@ def create_artificial_event(row: dict, product_metadata: dict) -> dict:
     return None
 
 
-def send_event(row: dict, collect_url: str, product_metadata: dict=None) -> bool:
-    """
-    Given the metadata in the row of the original dataset, 
-    create a GA event and make the HTTP request
-    """
-    try:
-        event = create_artificial_event(row, product_metadata)
-        if event:
-            status_code = post_payload(collect_url, event)
-    except Exception as ex:
-        # we don't really care about errors here and there, 
-        # as long as most messages are sent over - we just print errors for inspections
-        print("ERROR IN POSTING TO COLLECT: \n {} \n".format(ex))
-        return False
-    finally:
-        # randomize sending intervals
-        time.sleep(randint(5, 500) / 1000.0)
-
-    return True
-
-
 def get_catalog_map(catalog_file: str, is_debug: bool=False) -> dict:
     catalog_map = dict()
 
@@ -88,30 +72,46 @@ def get_catalog_map(catalog_file: str, is_debug: bool=False) -> dict:
     return catalog_map
 
 
-def pumper_loop(dataset_file: str, catalog_map: dict, collect_url: str, n_events: int) -> bool:
-    """
-    
-        Loop over the browsing dataset, join with catalog data and send the event to collect
-
-    """
+def prepare_events(dataset_file: str, catalog_map: dict, n_events: int):
+    events = []
     with open(dataset_file) as csvfile:
         reader = csv.DictReader(csvfile)
         for idx, row in enumerate(reader):
             # quit if limit has been reached
             if idx >= n_events:
                 print("Reached {} events: quitting!".format(idx))
-                return True
+                break
             # print some debugging stuff
-            if idx and idx % 200 == 0:
+            if idx and idx % 5000 == 0:
                 print("Reached {} events!".format(idx))
-            # send event
-            is_sent = send_event(
-                row,
-                collect_url,
-                catalog_map.get(row['product_sku_hash'], None) if row['product_sku_hash'] else None
-            )
-            
+            # build event
+            product_metadata = catalog_map.get(row['product_sku_hash'], None) if row['product_sku_hash'] else None
+            event = create_artificial_event(row, product_metadata) 
+            # if the event is created, add it to the list
+            if event:
+                events.append(event)           
+
+    return events
+
+
+def pumper_loop(dataset_file: str, catalog_map: dict, collect_url: str, n_events: int) -> bool:
+    """
+
+    Loop over the browsing dataset, join with catalog data and prepare the events.
+    When events are ready, send the events to collect using asyncio
+
+    """
+    import asyncio
+
+    events_to_send = prepare_events(dataset_file, catalog_map, n_events)
+    # send events in async loop
+    print("Sending {} events to /collect".format(len(events_to_send)))
+    start_time = time.time()
+    asyncio.run(post_all_events(collect_url, events_to_send))
+    print("--- %s seconds ---" % (time.time() - start_time))
+
     return True
+
 
 def pump_events(
     data_folder: str,
