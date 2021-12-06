@@ -22,6 +22,7 @@ import os
 from datetime import datetime
 from events import create_pageview, create_add, create_detail, create_purchase, create_remove
 import csv
+from typing import Union
 
 
 async def post_all_events(collect_url: str, events: list):
@@ -34,28 +35,28 @@ async def post_all_events(collect_url: str, events: list):
                 print("Reached {} events!".format(idx))
             async with session.post(collect_url, json=event) as resp:
                 await resp.read()
-                # print(event['z'])
 
     return
 
-def create_artificial_event(row: dict, product_metadata: dict) -> dict:
+def create_artificial_event(row: dict, product_metadata: dict) -> Union[dict, None]:
+    event = None
     if row['event_type'] == 'pageview':
-        return create_pageview(row)
+        event = create_pageview(row)
     elif row['event_type'] == 'event_product':
         if row['product_action'] == 'detail':
-            create_detail(row, product_metadata)
+            event = create_detail(row, product_metadata)
         elif row['product_action'] == 'add':
-            create_add(row, product_metadata)
+            event = create_add(row, product_metadata)
         elif row['product_action'] == 'remove':
-            create_remove(row, product_metadata)
+            event = create_remove(row, product_metadata)
         elif row['product_action'] == 'purchase':
-            create_purchase(row, product_metadata)
+            event = create_purchase(row, product_metadata)
         else:
             raise Exception("Product action not valid: {}".format(row['product_action']))
     else:
         raise Exception("Event type not valid: {}".format(row['event_type']))
 
-    return None
+    return event
 
 
 def get_catalog_map(catalog_file: str, is_debug: bool=False) -> dict:

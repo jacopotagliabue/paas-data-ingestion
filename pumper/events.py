@@ -1,6 +1,7 @@
 import uuid
 import time
 from random import choice
+from hashlib import md5
 
 
 # some variables to simulate random stuff
@@ -56,7 +57,7 @@ def create_base_properties(row: dict):
         "de": "UTF-8",
         "tid": map_session_to_metadata(session_id=row['session_id_hash'], _array=TIDs),
         # use session id as the client id in the GA sense
-        "cid": row['session_id_hash']
+        "cid": md5(row['session_id_hash'].encode("utf-8")).hexdigest()
         }
 
 
