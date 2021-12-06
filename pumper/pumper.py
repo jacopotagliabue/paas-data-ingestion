@@ -17,7 +17,6 @@
 
 
 import time
-from random import randint
 import os
 from datetime import datetime
 from events import create_pageview, create_add, create_detail, create_purchase, create_remove
