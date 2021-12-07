@@ -1,7 +1,6 @@
 import uuid
 import time
 from random import choice
-from hashlib import md5
 
 
 # some variables to simulate random stuff
@@ -43,6 +42,10 @@ def map_session_to_metadata(session_id: str, _array: list):
 
 
 def create_base_properties(row: dict):
+    new_cid = str(uuid.uuid5(uuid.NAMESPACE_DNS, row['session_id_hash']))
+    # make sure the length is what SF expects
+    assert len(new_cid) == 36
+    
     return { 
         # we use the placeholder URL and use the actual hash as param
         "dl": BASE_URL.format(row['hashed_url']),
@@ -57,7 +60,7 @@ def create_base_properties(row: dict):
         "de": "UTF-8",
         "tid": map_session_to_metadata(session_id=row['session_id_hash'], _array=TIDs),
         # use session id as the client id in the GA sense
-        "cid": md5(row['session_id_hash'].encode("utf-8")).hexdigest()
+        "cid": new_cid
         }
 
 
