@@ -6,7 +6,7 @@ This repository contains a fully PaaS infrastructure for data ingestion and tran
 
 The ingestion pipeline mimics a typical data flow for data-driven applications: clients send events, an endpoint collects them and dumps them into a stream, finally a data warehouse stores them for further processing:
 
-![Functional overview](images/data_pattern_viz.jpg | width=300)
+![Functional overview](/images/data_pattern_viz.jpg | width=300)
 
 We make use of three main technologies:
 
