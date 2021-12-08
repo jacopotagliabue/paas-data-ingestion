@@ -4,7 +4,9 @@ Ingest and prepare data with AWS lambdas, Snowflake and dbt in a scalable, fully
 ## Overview
 This repository contains a fully PaaS infrastructure for data ingestion and transformation at scale. This repository has a companion blog post (forthcoming), to which we refer the reader for in-depth analysis of the proposed patterns and the motivations behind the project.
 
-TBC
+The ingestion pipeline mimics a typical data flow for data-driven applications: clients send events, an endpoint collects them and dumps them into a stream, finally a data warehouse stores them for further processing:
+
+
 
 We make use of three main technologies:
 
@@ -12,7 +14,7 @@ We make use of three main technologies:
 * [Snowflake](https://signup.snowflake.com/), which allows us to store raw data at scale and manipulate it with powerful SQL queries, abstracting away all the complexity of distributed computing in a simple API.
 * [dbt](https://www.getdbt.com/), which allows us to define data transformation as versioned, replayable DAGs, and mix-and-match materialization strategies to suite our needs.
 
-Finally, it is worth mentioning that the repository is e-commerce related as a combination of three factors: 
+Finally, it is worth mentioning that the repository is e-commerce related as a results of mainly three factors: 
 
 * our own experience in building [pipelines for the industry](https://github.com/jacopotagliabue/you-dont-need-a-bigger-boat);
 * the availability of high-volume, high-quality data to simulate a realistic scenario;
