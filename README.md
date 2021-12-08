@@ -17,12 +17,15 @@ We make use of three main technologies:
 Finally, it is worth mentioning that the repository is e-commerce related as a results of mainly three factors: 
 
 * our own experience in building [pipelines for the industry](https://github.com/jacopotagliabue/you-dont-need-a-bigger-boat);
-* the availability of high-volume, high-quality data to simulate a realistic scenario;
+* the availability of high-volume, [high-quality data](https://github.com/coveooss/SIGIR-ecom-data-challenge) to simulate a realistic scenario;
 * finally, the high bar set by e-commerce as far as data quantity and data-driven applications: due to the nature of the business and the competition, even medium-sized digital shops tend to produce an enormous amount of data, and to run pretty sophisticated ML flows on top it - in other words, something that works for e-commerce is going to reasonably work for many other use cases out of the box, as they are likely less data intensive and less sophisticated ML-wise.
 
 Our goal was to keep the code realistic enough for the target use cases, but simple enough as to make it easy for everybody to port this stack to a different industry.
 
 ## Prerequisites
+
+* _Dataset_: we use the [Coveo Data Challenge dataset](https://github.com/coveooss/SIGIR-ecom-data-challenge) as our real-world dataset (if you prefer to use your own data, you can still re-use the `pumper.py` app if you adapt the format to your input files);
+* _Snowflake account_: TBC
 
 TBC
 
@@ -40,7 +43,7 @@ TBC
 
 ### AWS lambda
 
-A simple AWS lambda function implementing a [data collection pixel](https://medium.com/tooso/serving-1x1-pixels-from-aws-lambda-endpoints-9eff73fe7631). Once deployed, the resulting `/collect` endpoint will accept `POST` requests from clients sending e-commerce data: the function is kept simple for pedagogical reason - after accepting the body, it prepares a simple but structured event, and uses another AWS PaaS service, Firehose, to dump it in a stream for downstream storaeg and further processing.
+A simple AWS lambda function implementing a [data collection pixel](https://medium.com/tooso/serving-1x1-pixels-from-aws-lambda-endpoints-9eff73fe7631). Once deployed, the resulting `/collect` endpoint will accept `POST` requests from clients sending e-commerce data: the function is kept simple for pedagogical reason - after accepting the body, it prepares a simple but structured event, and uses another AWS PaaS service, Firehose, to dump it in a stream for downstream storage and further processing.
 
 ### Data pumper
 
@@ -50,16 +53,26 @@ The events are based on the real-world clickstream dataset open sourced in 2021,
 
 ## How to run it
 
-TBC
+Running the stack involves running three operations:
 
-### Pumper
+* setting up the infrastructure;
+* send data;
+* run dbt transformations.
+
+### Send data with the pumper
 
 * To pump data into the newly created stack, `cd` into the `pumper` folder, create a virtual environment and activate it, then install the requirements with `pip install -r requirements.txt`.
 * Download and unzip the [Coveo Data Challenge dataset](https://github.com/coveooss/SIGIR-ecom-data-challenge) into a local folder and write down the full path, e.g. `myfolder/train`
 * Create a copy of `.env.local` named `.env`, and use the dataset path as the value for `DATA_FOLDER`, the AWS url for the lambda function for `COLLECT_URL`.
 * Run `python pumper.py` to start sending Google Analytics events to the endpoint. The script will run until `N_EVENTS` has been sent (change the variable in the script to what you like).
 
-Please note that at every run, `pumper.py` will send events as they are happening in that very moments: so running the code two times will not produce duplicate events, but events with similar categorical features and different id, timestamp etc.
+At every run, `pumper.py` will send events as they are happening in that very moments: so running the code two times will not produce duplicate events, but events with similar categorical features and different id, timestamp etc.
+
+Please note that if you want to jump start the log table by bulk-loading the dataset (or a portion of it) to Snowflake, you can avoid some idle time waiting for events to be sent by using the [copy into](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table.html) function over the raw csv.
+
+## Bonus: mix and match materialization options
+
+TBC
 
 ## Contributors
 
