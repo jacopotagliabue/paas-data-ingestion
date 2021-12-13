@@ -35,11 +35,11 @@ The project is divided in three main components and a simulation script.
 
 ### Infrastructure
 
-TBC
+Following the infrastructure-as-code paradigm, the folder contains the Pulumi code necessary to properly set up the AWS(lambda function, API Gateway, Cloudwatch, Firehose, etc.) and Snowflake components needed for the ingestion platform to work. For instructions on how to run it, see below.
 
 ### dbt
 
-TBC
+The folder contains a typical dbt project, whose goal is to collect, organize, version all the transformation code needed to go from the raw data ingested by the pixel endpoint to the pre-calculated features and aggregations that can be consumed by downstream processes (BI, ML, etc.). For instructions on how to run the dbt project, see below.
 
 ### AWS lambda
 
@@ -59,6 +59,10 @@ Running the stack involves running three operations:
 * send data;
 * run dbt transformations.
 
+### Setting up the infrastructure
+
+TBC
+
 ### Send data with the pumper
 
 * To pump data into the newly created stack, `cd` into the `pumper` folder, create a virtual environment and activate it, then install the requirements with `pip install -r requirements.txt`.
@@ -69,6 +73,10 @@ Running the stack involves running three operations:
 At every run, `pumper.py` will send events as they are happening in that very moments: so running the code two times will not produce duplicate events, but events with similar categorical features and different id, timestamp etc.
 
 Please note that if you want to jump start the log table by bulk-loading the dataset (or a portion of it) to Snowflake, you can avoid some idle time waiting for events to be sent by using the [copy into](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table.html) function over the raw csv.
+
+### Run dbt transformations
+
+TBC
 
 ## Bonus: mix and match materialization options
 
