@@ -134,3 +134,5 @@ package.json
 package-lock.json
 .serverless/
 .DS_Store
+
+Pulumi.*.yaml
