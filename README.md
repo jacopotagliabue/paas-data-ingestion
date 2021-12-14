@@ -37,9 +37,9 @@ The project is divided in three main components and a simulation script.
 
 ### Infrastructure
 
-We used Pulimi to define the whole infrastructure (for managing AWS & Snowflake resources) via code.
+Following the infrastructure-as-code paradigm, the folder contains the Pulumi code necessary to properly set up the AWS (lambda function, API Gateway, Cloudwatch, Firehose, etc.) and Snowflake components needed for the ingestion platform to work. For instructions on how to run it, see below.
 
-Pulimi uses the `infrastructure/__main__.py` file to check which services have to create/updated or removed. The script defines:
+We used Pulimi to define the whole infrastructurevia code. It reads the `infrastructure/__main__.py` file to check which services have to create/updated or removed. The script defines:
 
 - `s3_logs_bucket` is the S3 bucket we use to store all the logs sent to Firehose
 - `sf_database` is the database Pulumi will create on your Snowflake account
@@ -57,6 +57,8 @@ Pulimi uses the `infrastructure/__main__.py` file to check which services have t
 - `lambda_api_collect` is a custom module we build `infrastructure/my_lambda.py` to define the Lambda function for the `/collect` endpoint.
 
 ### dbt
+
+The folder contains a typical dbt project, whose goal is to collect, organize, version all the transformation code needed to go from the raw data ingested by the pixel endpoint to the pre-calculated features and aggregations that can be consumed by downstream processes (BI, ML, etc.). For instructions on how to run the dbt project, see below.
 
 We used DBT to process the RAW logs and to normalize the data into 3 different schemes:
 
@@ -96,23 +98,20 @@ Running the stack involves running three operations:
 
 ### Setting up the infrastructure
 
-1. Jump into the project folder
-    ```sh
-    cd infrastructure
-    ```
-2. [Install Pulumi](https://www.pulumi.com/docs/get-started/install/) on your computer and configure your [Pulumi account](https://www.pulumi.com/docs/reference/cli/pulumi_login/):
+1. [Install Pulumi](https://www.pulumi.com/docs/get-started/install/) on your computer and configure your [Pulumi account](https://www.pulumi.com/docs/reference/cli/pulumi_login/):
     ```sh
     pulumi login
     ```
-3. Setup the Python venv
+2. Jump into the project folder & setup the python venv
     ```sh
+    cd infrastructure
     make init
     ```
-4. Create a new Pulumi Stack:
+3. Create a new Pulumi Stack:
     ```sh
     pulumi stack init dev
     ```
-5. Configure the new stack with all the required credentials:
+4. Configure the new stack with all the required credentials:
     ```sh
     # AWS
     pulumi config set aws:region <value>
@@ -125,7 +124,7 @@ Running the stack involves running three operations:
     pulumi config set snowflake:username <value>
     ```
     All the configurations will be stored on the `Pulumi.dev.yaml` file.
-6. Deploy the stack:
+5. Deploy the stack:
     ```sh
     make up
     ```
@@ -146,6 +145,41 @@ Notes:
 At every run, `pumper.py` will send events as they are happening in that very moments: so running the code two times will not produce duplicate events, but events with similar categorical features and different id, timestamp etc.
 
 Please note that if you want to jump start the log table by bulk-loading the dataset (or a portion of it) to Snowflake, you can avoid some idle time waiting for events to be sent by using the [copy into](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table.html) function over the raw csv.
+
+
+### Run dbt transformations
+
+1. Jump into the project folder & setup the python venv
+    ```sh
+    cd dbt
+    make init
+    ```
+2. Configure your DBT profile following the [ufficial guide](https://docs.getdbt.com/dbt-cli/configure-your-profile):
+    ```yaml
+    paas-data-ingestion:
+        target: dev
+        outputs:
+            dev:
+                type: snowflake
+                account: <value>
+                user: <value>
+                password: <value>
+
+                role: ACCOUNTADMIN
+                database: "PAAS_DATA_INGESTION_DEV"
+                warehouse: "PAAS_DATA_INGESTION_DEV_WH"
+                schema: RAW
+                threads: 5
+                client_session_keep_alive: False
+
+    ```
+5. Launch DBT:
+    ```sh
+    make dbt-run
+    make dbt-rest
+    make dbt-docs
+    ```
+
 
 ## Bonus: mix and match materialization options
 
