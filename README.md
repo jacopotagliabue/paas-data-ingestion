@@ -26,7 +26,7 @@ Our goal was to keep the code realistic enough for the target use cases, but sim
 
 * _Dataset_: we use the [Coveo Data Challenge dataset](https://github.com/coveooss/SIGIR-ecom-data-challenge) as our real-world dataset (if you prefer to use your own data, you can still re-use the `pumper.py` app if you adapt the format to your input files).
 * _Snowflake account_: [sign-up for a 30-day free trial](https://signup.snowflake.com).
-* _Pulumi account_: [Sign-up for a free Individual account](https://www.pulumi.com).
+* _Pulumi account_: [sign-up for a free Individual account](https://www.pulumi.com).
 * _AWS account_: [sign-up for a free AWS account](https://aws.amazon.com/free/) (S3, API Gateway & Lambda have a free tier).
 
 Please note that by running this project you *may incur* in some cloud costs: make sure to keep costs and infrastructure monitored and to understand how much your experiments are covered by the free tier.
@@ -39,7 +39,7 @@ The project is divided in three main components and a simulation script.
 
 Following the infrastructure-as-code paradigm, the folder contains the Pulumi code necessary to properly set up the AWS (lambda function, API Gateway, Cloudwatch, Firehose, etc.) and Snowflake components needed for the ingestion platform to work. For instructions on how to run it, see below.
 
-`infrastructure/__main__.py` checks which services have to create/updated or removed. The script defines:
+`infrastructure/__main__.py` checks which services have to be created/updated/removed. The script defines:
 
 - `s3_logs_bucket` is the S3 bucket we use to store the logs sent to Firehose;
 - `sf_database` is the database on Snowflake;
