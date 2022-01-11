@@ -1,6 +1,6 @@
 """
 
-    This simple script will use real-world e-commerce data coming from the Coveo dataset to send realistic 
+    This simple script will use real-world e-commerce data coming from the Coveo dataset to send realistic
     events to the /collect endpoint that powers the ingestion pipeline at the heart of this repository.
 
     The dataset is freely available for research purposes at:
@@ -9,7 +9,7 @@
 
     Don't forget to star the repo if you use the dataset ;-)
 
-    Of course, you could send to /collect your own Google Analytics-like events if you wish, or even totally 
+    Of course, you could send to /collect your own Google Analytics-like events if you wish, or even totally
     random events: while nothing hinges on the specificity of the chosen data stream, we thought it was better for
     pedagogical reasons to actually use events coming from a real distribution.
 
@@ -86,10 +86,10 @@ def prepare_events(dataset_file: str, catalog_map: dict, n_events: int):
                 print("Reached {} events!".format(idx))
             # build event
             product_metadata = catalog_map.get(row['product_sku_hash'], None) if row['product_sku_hash'] else None
-            event = create_artificial_event(row, product_metadata) 
+            event = create_artificial_event(row, product_metadata)
             # if the event is created, add it to the list
             if event:
-                events.append(event)           
+                events.append(event)
 
     return events
 
@@ -121,7 +121,7 @@ def pump_events(
     """
         Main orchestrating function:
 
-        loop over a dataset of real events, simulate Google Analytics-like payloads and send 
+        loop over a dataset of real events, simulate Google Analytics-like payloads and send
         them to the ingestion endpoint
     """
     print("\n============> Start processing at {}\n".format(datetime.utcnow()))
@@ -142,15 +142,11 @@ if __name__ == "__main__":
         pass
 
     # make sure we have the data folder variable set, otherwise fail
-    # this should be the folder containing the csv file from the Coveo Dataset
-    assert os.environ['DATA_FOLDER']
     # make sure we know where to send events
     assert os.environ['COLLECT_URL']
-    # some global vars for the data pump
-    N_EVENTS = 100000
 
     pump_events(
-        data_folder=os.environ['DATA_FOLDER'],
+        data_folder=os.environ.get('DATA_FOLDER', './dataset'),
         collect_url=os.environ['COLLECT_URL'],
-        n_events=N_EVENTS
+        n_events=int(os.environ.get('N_EVENTS', 1000)),
     )

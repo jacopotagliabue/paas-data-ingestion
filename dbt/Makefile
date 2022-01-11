@@ -2,7 +2,7 @@ SHELL := /bin/bash
 SOURCE_VENV := source ./venv/bin/activate
 
 
-init:
+install:
 	python3 -m venv venv \
 		&& ${SOURCE_VENV} \
 		&& python3 -m pip install --upgrade pip \

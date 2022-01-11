@@ -7,5 +7,5 @@ install:
 		python3 -m pip install --upgrade pip \
 		pip install -r requirements.txt
 
-up:
-	${SOURCE_VENV} && pulumi up
+pump:
+	${SOURCE_VENV} && python3 pumper.py

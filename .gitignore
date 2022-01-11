@@ -136,3 +136,5 @@ package-lock.json
 .DS_Store
 
 Pulumi.*.yaml
+
+utils/pumper/train/*.csv
