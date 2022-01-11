@@ -39,7 +39,7 @@ The project is divided in three main components and a simulation script.
 
 Following the infrastructure-as-code paradigm, the folder contains the Pulumi code necessary to properly set up the AWS (lambda function, API Gateway, Cloudwatch, Firehose, etc.) and Snowflake components needed for the ingestion platform to work. For instructions on how to run it, see below.
 
-`infrastructure/__main__.py` checks which services have to be created/updated/removed. The script defines:
+[infrastructure/__main__.py](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/infrastructure/__main__.py) checks which services have to be created/updated/removed. The script defines:
 
 - `s3_logs_bucket` is the S3 bucket we use to store the logs sent to Firehose;
 - `sf_database` is the database on Snowflake;
@@ -62,16 +62,16 @@ The folder contains a typical dbt project, whose goal is to collect, organize, v
 
 We used dbt to process RAW logs and to normalize the data into 3 different schemes:
 
-- `EVENTS`, stored on `dbt/models/events/marts`, contains all the materialized tables (`events`, `logs`, `pageviews`, `product_actions`, `purchases` & `user_agents`) with the data computed during the last execution;
-- `EVENTS_LIVE`, stored on `dbt/models/events/live`, contains the same tables above (`events`, `logs` etc...) updated in real-time; the views are the result of the union of the materialized table and the new events;
-- `STATS`, stored on `dbt/models/stats`, defines materialized tables (`overview_1h`, `overview_1d`) containing all the main pre-calculated stats a dashboard can use (`pageviews`, `add_to_cart`, `transactions`, `transaction_revenue` etc).
+- `EVENTS`, stored on [dbt/models/events/marts](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/models/events/marts), contains all the materialized tables (`events`, `logs`, `pageviews`, `product_actions`, `purchases` & `user_agents`) with the data computed during the last execution;
+- `EVENTS_LIVE`, stored on [dbt/models/events/live](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/models/events/live), contains the same tables above (`events`, `logs` etc...) updated in real-time; the views are the result of the union of the materialized table and the new events;
+- `STATS`, stored on [dbt/models/stats](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/models/stats), defines materialized tables (`overview_1h`, `overview_1d`) containing all the main pre-calculated stats a dashboard can use (`pageviews`, `add_to_cart`, `transactions`, `transaction_revenue` etc).
 
 We define the queries in macros because the tables stored on the `EVENTS` & `EVENTS_LIVE` schemes are the same but contain data from different analysis periods. For example, the `logs` table containing all the sessionized and enriched logs is used as to power the other tables:
 
-- `dbt/models/marts/logs.sql` is the materialized version of the table (`EVENTS.LOGS`); we use an incremental materialization and the SQL query is defined on the `dbt/macros/events/select_logs.sql` table;
-- `dbt/models/live/logs_live.sql` is the live version of the table (`EVENTS_LIVE.LOGS`); the script does a UNION between all the events stored on `EVENTS.LOGS` with all the new events defined on the `EVENTS.LOGS_STAGED` table (`dbt/models/live/logs_staged.sql`)
+- [dbt/models/marts/logs.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/models/marts/logs.sql) is the materialized version of the table (`EVENTS.LOGS`); we use an incremental materialization and the SQL query is defined on the [dbt/macros/events/select_logs.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/macros/events/select_logs.sql) table;
+- [dbt/models/live/logs_live.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/models/live/logs_live.sql) is the live version of the table (`EVENTS_LIVE.LOGS`); the script does a UNION between all the events stored on `EVENTS.LOGS` with all the new events defined on the `EVENTS.LOGS_STAGED` table ([dbt/models/live/logs_staged.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/models/live/logs_staged.sql))
 
-Both the `EVENTS.LOGS` and the `EVENTS_LIVE.LOGS_STAGED` table uses the same macro `dbt/macros/events/select_logs.sql` but with different filters.
+Both the `EVENTS.LOGS` and the `EVENTS_LIVE.LOGS_STAGED` table uses the same macro [dbt/macros/events/select_logs.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/macros/events/select_logs.sql) but with different filters.
 
 Finally, for pedagogical purposes, we have integrated the [UAParser.js](https://github.com/faisalman/ua-parser-js/tree/master/dist) library for parsing the user-agents directly on Snowflake.
 
@@ -141,12 +141,12 @@ Notes:
 
 ### Send data with the pumper
 
-* To pump data into the newly created stack, `cd` into the `utils/pumper` folder, and run `make install`.
+* To pump data into the newly created stack, `cd` into the [utils/pumper](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/utils/pumper) folder, and run `make install`.
 * Download and unzip the [Coveo Data Challenge dataset](https://github.com/coveooss/SIGIR-ecom-data-challenge) into `utils/pumper/dataset`
 * Create a copy of `.env.local` named `.env`, and use the dataset path as the value for `DATA_FOLDER`, the AWS url for the lambda function for `COLLECT_URL`.
 * Run `make pump` to start sending Google Analytics events to the endpoint. The script will run until `N_EVENTS` has been sent (change the variable in your `.env` file to what you like).
 
-At every run, `pumper.py` will send events as they are happening in that very moments: so running the code two times will not produce duplicate events, but events with similar categorical features and different id, timestamp etc.
+At every run, [pumper.py](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/utils/pumper/pumper.py) will send events as they are happening in that very moments: so running the code two times will not produce duplicate events, but events with similar categorical features and different id, timestamp etc.
 
 Please note that if you want to jump start the log table by bulk-loading the dataset (or a portion of it) to Snowflake, you can avoid some idle time waiting for events to be sent by using the [copy into](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table.html) function over the raw csv.
 
