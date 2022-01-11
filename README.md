@@ -71,7 +71,7 @@ We define the queries in macros because the tables stored on the `EVENTS` & `EVE
 - [dbt/models/events/marts/logs.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/models/events/marts/logs.sql) is the materialized version of the table (`EVENTS.LOGS`); we use an incremental materialization and the SQL query is defined on the [dbt/macros/models/events/select_logs.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/macros/models/events/select_logs.sql) table;
 - [dbt/models/events/live/logs_live.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/models/events/live/logs_live.sql) is the live version of the table (`EVENTS_LIVE.LOGS`); the script does a UNION between all the events stored on `EVENTS.LOGS` with all the new events defined on the `EVENTS.LOGS_STAGED` table ([dbt/models/events/live/logs_staged.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/models/events/live/logs_staged.sql))
 
-Both the `EVENTS.LOGS` and the `EVENTS_LIVE.LOGS_STAGED` table uses the same macro [dbt/macros/events/select_logs.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/macros/events/select_logs.sql) but with different filters.
+Both the `EVENTS.LOGS` and the `EVENTS_LIVE.LOGS_STAGED` table uses the same macro [dbt/macros/models/events/select_logs.sql](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/dbt/macros/models/events/select_logs.sql) but with different filters.
 
 Finally, for pedagogical purposes, we have integrated the [UAParser.js](https://github.com/faisalman/ua-parser-js/tree/master/dist) library for parsing the user-agents directly on Snowflake.
 
