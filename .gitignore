@@ -138,3 +138,5 @@ package-lock.json
 Pulumi.*.yaml
 
 utils/pumper/train/*.csv
+
+*.csv

@@ -142,7 +142,7 @@ Notes:
 ### Send data with the pumper
 
 * To pump data into the newly created stack, `cd` into the [utils/pumper](https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/utils/pumper) folder, and run `make install`.
-* Download and unzip the [Coveo Data Challenge dataset](https://github.com/coveooss/SIGIR-ecom-data-challenge) into `utils/pumper/dataset`
+* Download and unzip the [Coveo Data Challenge dataset](https://github.com/coveooss/SIGIR-ecom-data-challenge) into `utils/pumper/dataset`. Make sure the target folder directly contains the `.csv` files, without additional nesting.
 * Create a copy of `.env.local` named `.env`, and use the dataset path as the value for `DATA_FOLDER`, the AWS url for the lambda function for `COLLECT_URL`.
 * Run `make pump` to start sending Google Analytics events to the endpoint. The script will run until `N_EVENTS` has been sent (change the variable in your `.env` file to what you like).
 

@@ -79,7 +79,7 @@ def prepare_events(dataset_file: str, catalog_map: dict, n_events: int):
         for idx, row in enumerate(reader):
             # quit if limit has been reached
             if idx >= n_events:
-                print("Reached {} events: quitting!".format(idx))
+                print("Reached {} events!".format(idx))
                 break
             # print some debugging stuff
             if idx and idx % 5000 == 0:
