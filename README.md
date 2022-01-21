@@ -2,7 +2,7 @@
 Ingest and prepare data with AWS lambdas, Snowflake and dbt in a scalable, fully replayable manner.
 
 ## Overview
-This repository contains a fully PaaS infrastructure for data ingestion and transformation at scale. This repository has a companion blog post (forthcoming), to which we refer the reader for in-depth analysis of the proposed patterns and the motivations behind the project.
+This repository contains a fully PaaS infrastructure for data ingestion and transformation at scale. This repository has a companion [blog post](https://towardsdatascience.com/the-modern-data-pattern-d34d42216c81), to which we refer the reader for in-depth analysis of the proposed patterns and the motivations behind the project. While you can enjoy this repository in isolation, please note that our pipeline is part of a bigger architecture, detailed in our [MLOps without Much Ops series](https://towardsdatascience.com/tagged/mlops-without-much-ops).
 
 The ingestion pipeline mimics a typical data flow for data-driven applications: clients send events, an endpoint collects them and dumps them into a stream, finally a data warehouse stores them for further processing:
 
@@ -194,7 +194,7 @@ Sessionization requires some heavy lifting with window functions, so we would li
 
 <img src="https://github.com/jacopotagliabue/paas-data-ingestion/blob/main/docs/union.jpg" width="640">
 
-Please refer to our blog post for more details.
+Please refer to our [blog post](https://towardsdatascience.com/the-modern-data-pattern-d34d42216c81) for more details.
 
 ## Contributors
 
@@ -202,6 +202,8 @@ This project has been brought to you with love by:
 
 * [Luca Bigon](https://www.linkedin.com/in/bigluck/): design, infrastructure, SQL-ing
 * [Jacopo Tagliabue](https://www.linkedin.com/in/jacopotagliabue/): design, data
+
+A lot of people helped with the [blog post](https://towardsdatascience.com/the-modern-data-pattern-d34d42216c81): please refer to our article for more details.
 
 ## License
 The code is provided "as is" and released under an open MIT License.
